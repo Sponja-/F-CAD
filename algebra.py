@@ -1,21 +1,13 @@
-from elements import Element, BinaryOperation, Operation, Constant
-from arithmetic import Addition
+from elements import BinaryOperation, Operation, Constant
 from numpy import array, arange, sum
 
-class Vector(Element):
-	def __init__(self, elems, **kwargs):
+class Vector(Constant):
+	def __init__(self, elems):
 		self.value = array(elems)
-		super().__init__(**kwargs)
-
-	def eval(self):
-		return self.value
-
-	def __str__(self):
-		return str(self.value)
 
 class Range(Operation):
 	def __init__(self, start, end, step=1):
-		operation = lambda start, end, step: arange(start, end, step)
+		operation = lambda x, y, z: arange(x, y, z)
 		super().__init__(operation, start, end, step)
 
 	def __str__(self):
