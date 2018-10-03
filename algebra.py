@@ -22,27 +22,37 @@ class Range(Operation):
 		return f"({str(self.operands[0])}, {str(self.operands[0] + self.operands[2])} ... {str(self.operands[1])})"
 
 class Subscript(Operation):
-	def __init__(self, operand_1, operand_2):
+	def __init__(self, vector, index):
 		operation = lambda x, y: x[y]
-		super().__init__(operation, operand_1, operand_2)
+		super().__init__(operation, vector, index)
 
 	def __str__(self):
 		return f"{str(self.operands[0])}[{str(self.operands[1])}]"
 
 class DotProduct(BinaryOperation):
-	def __init__(self, operand_1, operand_2):
+	def __init__(self, vector_1, vector_2):
 		operation = lambda x, y: sum(x * y)
-		super().__init__(operation, operand_1, operand_2, symbol='.')
+		super().__init__(operation, vector_1, vector_2, symbol='.')
 
 class Magnitude(Operation):
-	def __init__(self, operand):
+	def __init__(self, vector):
 		operation = lambda x: sum(x ** 2) ** 0.5
-		super().__init__(operation, operand)
+		super().__init__(operation, vector)
 
 	def __str__(self):
 		return f"|{str(self.operands[0])}|"
 
+class Row(BinaryOperation):
+	def __init__(self, matrix, index):
+		operation = lambda x, y: x[y]
+		super().__init__(operation, matrix, index, symbol="row")
+
+class Column(BinaryOperation):
+	def __init__(self, matrix, index):
+		operation = lambda x, y: x[:, y]
+		super().__init__(operation, matrix, index, symbol="col")
+
 class Sumation(Operation):
-	def __init__(self, term):
+	def __init__(self, terms):
 		operation = lambda x: sum(x)
-		super().__init__(operation, term, symbol="sum")
+		super().__init__(operation, terms, symbol="sum")

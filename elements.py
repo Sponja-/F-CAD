@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-var_table = {}
+global_var_table = {}
 
 class Element:
 	def __init__(self, **kwargs):
@@ -29,7 +29,6 @@ class Variable(Element):
 	def __init__(self, symbol, value, **kwargs):
 		self.symbol = symbol
 		self.value = value
-		var_table[symbol] = self
 		super().__init__(**kwargs)
 
 	def eval(self):
@@ -37,6 +36,11 @@ class Variable(Element):
 
 	def __str__(self):
 		return self.symbol
+
+class GlobalVariable(Element):
+	def __init__(self, symbol, value, **kwargs):
+		global_var_table[symbol] = self
+		super().__init__(symbol, value, **kwargs)
 		
 class Operation(Element):
 	def __init__(self, operation, *operands, **kwargs):
