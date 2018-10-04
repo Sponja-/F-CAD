@@ -81,14 +81,6 @@ class Opposite(Operation):
 		operation = lambda x: -x
 		super.__init__(operation, number, symbol="-")
 
-class Inverse(Operation):
-	def __init__(self, number):
-		operation = lambda x: 1 / x
-		super.__init__(operation, number)
-
-	def __str__(self):
-		return f"({str(self.operands[0])}^-1)"
-
 class AbsoluteValue(Operation):
 	def __init__(self, number):
 		operation = lambda x: (x ** 2) ** 0.5 

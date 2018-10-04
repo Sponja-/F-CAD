@@ -1,3 +1,5 @@
+from itertools import zip_longest
+
 class Constant:
 	def eval(self):
 		return self.value
@@ -10,15 +12,36 @@ class Number(Constant):
 		self.value = value
 
 class Variable:
-	def __init__(self, symbol, value):
+	table = {}
+
+	def __init__(self, symbol):
 		self.symbol = symbol
-		self.value = value
 
 	def eval(self):
-		return self.value.eval()
+		return Variable.table[self.symbol].eval()
+
+	@property
+	def value(self):
+		return Variable.table[self.symbol]
+
+	@value.setter
+	def value(self, val):
+		Variable.table[self.symbol] = val
 
 	def __str__(self):
 		return self.symbol
+
+class temp_vars:
+    def __init__(self, **kwargs):
+        self.vars = kwargs
+    
+    def __enter__(self, **kwargs):
+        for key, value in self.vars.items():
+            Variable.table[key] = value
+        
+    def __exit__(self, type, value, tb):
+        for key in self.vars.keys():
+            del Variable.table[key]
 
 class Operation:
 	def __init__(self, operation, *operands):
@@ -38,3 +61,25 @@ class BinaryOperation(Operation):
 
 	def __str__(self):
 		return f"({str(self.operands[0])} {self.symbol} {str(self.operands[1])})"
+
+class func:
+	def __init__(self, var_symbols, operation):
+		self.symbols = var_symbols
+		self.operation = operation
+
+	def __str__(self):
+		return str(self.operation)
+
+class Function(Constant):
+	def __init__(self, var_symbols, operation):
+		self.value = func(var_symbols, operation)
+
+class FunctionCall(Operation):
+	def __init__(self, function, *args):
+		def operation(x, *y):
+			with temp_vars(**{zip_longest(x.symbols, y, fillvalue=None)}):
+				x.operation.eval()
+		super().__init__(function, *args)
+
+	def __str__(self):
+		return f"{str(self.operands[0])}({', '.join(str(op) for op in self.operands[1:])})"
