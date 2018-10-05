@@ -44,7 +44,7 @@ class Column(BinaryOperation):
 		operation = lambda x, y: x[:, y]
 		super().__init__(operation, matrix, index, symbol="col")
 
-class Sumation(Operation):
+class SumElements(Operation):
 	def __init__(self, terms):
 		operation = lambda x: sum(x)
 		super().__init__(operation, terms, symbol="sum")

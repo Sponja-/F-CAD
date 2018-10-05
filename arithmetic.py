@@ -1,8 +1,5 @@
-from elements import Operation, BinaryOperation, Constant
-from constants import e
-
-__ten = Constant(10)
-__two = Constant(2)
+from elements import Operation, BinaryOperation
+from constants import e, ten, two
 
 class Addition(BinaryOperation):
 	def __init__(self, number_1, number_2):
@@ -24,7 +21,7 @@ class Division(BinaryOperation):
 		operation = lambda x, y: x / y
 		super().__init__(operation, number_1, number_2, symbol='/')
 
-class Exponentation(BinaryOperation):
+class Exponentiation(BinaryOperation):
 	def __init__(self, number_1, number_2):
 		operation = lambda x, y: x ** y
 		super().__init__(operation, number_1, number_2, symbol='^')
@@ -52,14 +49,14 @@ class Logarithm(BinaryOperation):
 
 class CommonLogarithm(Logarithm):
 	def __init__(self, number):
-		super().__init__(number, __ten)
+		super().__init__(number, ten)
 
 	def __str__(self):
 		return f"log({self.operands[0]})"
 
 class LogarithmBase2(Logarithm):
 	def __init__(self, number):
-		super().__init__(number, __two)
+		super().__init__(number, two)
 
 	def __str__(self):
 		return f"lg({self.operands[0]})"
@@ -80,6 +77,11 @@ class Opposite(Operation):
 	def __init__(self, number):
 		operation = lambda x: -x
 		super.__init__(operation, number, symbol="-")
+
+class Inverse(Operation):
+	def __init__(self, number):
+		operation = lambda x: 1 / x
+		super.__init__(operation, number, symbol="inv")
 
 class AbsoluteValue(Operation):
 	def __init__(self, number):

@@ -79,7 +79,7 @@ class FunctionCall(Operation):
 		def operation(x, *y):
 			with temp_vars(**{zip_longest(x.symbols, y, fillvalue=None)}):
 				x.operation.eval()
-		super().__init__(function, *args)
+		super().__init__(operation, function, *args)
 
 	def __str__(self):
 		return f"{str(self.operands[0])}({', '.join(str(op) for op in self.operands[1:])})"
