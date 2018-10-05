@@ -1,4 +1,4 @@
-from elements import Constant
+from elements import Number
 import numpy as np
 
 zero = Number(0)

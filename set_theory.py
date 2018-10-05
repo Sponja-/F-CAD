@@ -61,4 +61,4 @@ class SetBuilder(Operation):
 		super().__init__(operation, range, condition)
 
 	def __str__(self):
-		return r"{x | x in " + str(self.operands[0]) + " and " str(condition) "}"
+		return r"{x | x in " + str(self.operands[0]) + " and " + str(condition) + "}"

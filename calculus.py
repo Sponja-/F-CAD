@@ -1,7 +1,19 @@
 from elements import Operation, Function, Variable
 from arithmetic import *
-from consants import *
+from constants import *
 from trigonometry import *
+
+def Logarithm_derivative(f, g, df, dg):
+	if type(g) is not Number:
+		raise NotImplementedError
+	return Division(
+		df,
+		Multiplication(
+				LogarithmBaseE(g),
+				f
+			)
+		)
+
 
 operation_derivatives = { 
 	Addition: lambda f, g, df, dg:
@@ -57,7 +69,7 @@ operation_derivatives = {
 			)
 		),
 
-	NthRoot: NthRoot_derivative,
+	NthRoot: None,
 
 	Logarithm: Logarithm_derivative,
 
@@ -141,26 +153,15 @@ operation_derivatives = {
 		)
 }
 
-def Logarithm_derivative(f, g, df, dg):
-	if type(g) is not Number:
-		except NotImplementedError
-	return Division(
-		df,
-		Multiplication(
-				LogarithmBaseE(g),
-				f
-			)
-		)
+operation_derivatives[NthRoot] = lambda f, g, df, dg: operation_derivatives[Exponentiation](f, Inverse(g), df, operation_derivatives[Inverse](g, dg))
 
-def NthRoot_derivative(f, g, df, dg):
-	return operation_derivatives[Exponentiation](f, Inverse(g), df, operation_derivatives[Inverse](g, dg))
-
-def differentiate(f, var_symbol):
+def derivative(f, var_symbol):
 	if type(f) is Function:
-		assert(var_symbol in f.value.symbols)
-		return differentiate(f.value.operation, var_symbol)
+		if var_symbol in f.value.symbols
+			return derivative(f.value.operation, var_symbol)
+		return f
 	elif isinstance(f, Operation):
-		return operation_derivatives[type(f)](f.operands, *(differentiate(op) for op in f.operands))
+		return operation_derivatives[type(f)](*f.operands, *(derivative(op, var_symbol) for op in f.operands))
 	elif type(f) is Variable:
 		if f.symbol == var_symbol:
 			return one
@@ -168,8 +169,15 @@ def differentiate(f, var_symbol):
 			return f
 	elif type(f) is Number:
 		return zero
+	return f
 
 class Differentiate(Operation):
 	def __init__(self, function, var_symbol):
-		operation = differentiate
+		operation = derivative
 		super().__init__(operation, function, var_symbol)
+
+	def eval(self):
+		return self.operation(self.operands[0] if type(self.operands[0]) is not Variable else self.operands[0].value, self.operands[1])
+
+	def __str__(self):
+		return f"d({str(self.operands[0])})/d{self.opernads[1]}"

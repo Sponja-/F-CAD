@@ -1,4 +1,4 @@
-from elements import Number, Operation
+from elements import Number, Operation, Constant
 from arithmetic import *
 from constants import zero, one
 from set_theory import Set
@@ -12,24 +12,27 @@ def s_Addition(op):
 		return op.operands[0]
 	return op
 
-s_Substraction = s_Addition
+def s_Substraction(op):
+	if type(op.operands[1]) is Number and op.operands[1].value == 0:
+		return op.operands[0]
+	if type(op.opernads[0]) is Number and op.operands[0].value == 0:
+		return Inverse(op.operands[1])
+	return op
 
 def s_Multiplication(op):
 	if type(op.operands[0]) is Number:
 		op.operands[0], op.operands[1] = op.operands[1], op.operands[0]
 	if type(op.operands[1]) is Number:
 		if op.operands[1].value == 0:
-			return op.operands[1]
+			return zero
 		if op.operands[1].value == 1:
 			return op.operands[0]
 	return op
 
 def s_Division(op):
-	if type(op.operands[0]) is Number:
-		op.operands[0], op.operands[1] = op.operands[1], op.operands[0]
 	if type(op.operands[1]) is Number:
 		if op.operands[1].value == 0:
-			except ZeroDivisionError
+			raise ZeroDivisionError
 		if op.operands[1].value == 1:
 			return op.operands[0]
 	return op
@@ -58,7 +61,7 @@ def s_NthRoot(op):
 def s_Logarithm(op):
 	if type(op.operands[0]) is Number:
 		if op.operands[0].value <= 0:
-			except ValueError
+			raise ValueError
 		if op.operands[0].value == 1:
 			return zero
 	return op
@@ -90,9 +93,12 @@ classes_for_values = {
 }
 
 def simplify(op):
-	if type(op) is Operation:
-		if all([type(x) == Constant for x in op.operands]):
+	if isinstance(op, Operation):
+		if all([isinstance(x, Constant) for x in op.operands]):
 			result = op.operation(*[x.value for x in op.operands])
 			return classes_for_values[type(result)](result)
-		return operation_simplifications.get(type(op), op)
+		if type(op) in operation_simplifications:
+			op.operands = [simplify(child) for child in op.operands]
+			return operation_simplifications[type(op)](op)
 	return op
+
