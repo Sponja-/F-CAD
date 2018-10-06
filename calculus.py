@@ -2,6 +2,7 @@ from elements import Operation, Function, Variable
 from arithmetic import *
 from constants import *
 from trigonometry import *
+from numpy import log
 
 def Logarithm_derivative(f, g, df, dg):
 	if type(g) is not Number:
@@ -14,6 +15,42 @@ def Logarithm_derivative(f, g, df, dg):
 			)
 		)
 
+def Exponentiation_derivative(f, g, df, dg):
+	if type(f) is Number:
+		return Multiplication(
+				Multiplication(
+					Number(log(f.value)),
+					Exponentiation(f, g)
+				),
+				dg
+			)
+	if type(g) is Number:
+		return Multiplication(
+				Multiplication(
+					g,
+					Exponentiation(f, Number(g.value - 1))
+				),
+				df
+			)
+	return Multiplication(
+			Exponentiation(
+				e,
+				Multiplication(
+					g,
+					LogarithmBaseE(f)
+					)
+				),
+			Addition(
+				Multiplication(
+					dg,
+					LogarithmBaseE(f)
+				),
+				Multiplication(
+					Division(g, f),
+					df
+				)
+			)
+		)
 
 operation_derivatives = { 
 	Addition: lambda f, g, df, dg:
@@ -37,26 +74,7 @@ operation_derivatives = {
 			Exponentiation(g, 2)
 		),
 
-	Exponentiation: lambda f, g, df, dg:
-		Multiplication(
-			Exponentiation(
-				e,
-				Multiplication(
-					g,
-					LogarithmBaseE(f)
-					)
-				),
-			Addition(
-				Multiplication(
-					dg,
-					LogarithmBaseE(f)
-				),
-				Multiplication(
-					Division(g, f),
-					df
-				)
-			)
-		),
+	Exponentiation:	Exponentiation_derivative,
 
 	SquareRoot: lambda f, df:
 		Multiplication(
@@ -157,7 +175,7 @@ operation_derivatives[NthRoot] = lambda f, g, df, dg: operation_derivatives[Expo
 
 def derivative(f, var_symbol):
 	if type(f) is Function:
-		if var_symbol in f.value.symbols
+		if var_symbol in f.value.symbols:
 			return derivative(f.value.operation, var_symbol)
 		return f
 	elif isinstance(f, Operation):
