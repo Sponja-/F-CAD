@@ -25,6 +25,11 @@ class Equal(BinaryOperation):
 		operation = lambda x, y: x == y
 		super().__init__(operation, value_1, value_2, symbol='=')
 
+class NotEqual(BinaryOperation):
+	def __init__(self, value_1, value_2):
+		operation = lambda x, y: x != y
+		super().__init__(operation, value_1, value_2, symbol='!=')
+
 class Lesser(BinaryOperation):
 	def __init__(self, value_1, value_2):
 		operation = lambda x, y: x < y

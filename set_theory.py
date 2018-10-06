@@ -15,16 +15,6 @@ class Intersection(BinaryOperation):
 		operation = lambda x, y: x & y
 		super().__init__(operation, set_1, set_2, symbol='&')
 
-class Difference(BinaryOperation):
-	def __init__(self, set_1, set_2):
-		operation = lambda x, y: x - y
-		super().__init__(operation, set_1, set_2, symbol='-')
-
-class SymmetricDifference(BinaryOperation):
-	def __init__(self, set_1, set_2):
-		operation = lambda x, y: x ^ y
-		super().__init__(operation, set_1, set_2, symbol='^')
-
 class IsSubset(BinaryOperation):
 	def __init__(self, set_1, set_2):
 		operation = lambda x, y: x <= y
