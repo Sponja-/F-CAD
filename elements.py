@@ -92,6 +92,14 @@ class FunctionCall(Operation):
 	def __str__(self):
 		return f"{str(self.operands[0])}({', '.join(str(op) for op in self.operands[1:])})"
 
-def assign(var, value):
-	if type(var) is Variable:
-		var.value = value
+class Assignment:
+	def __init__(self, var, value):
+		self.var = var
+		self.value = value
+
+	def eval(self):
+		if type(self.var) is Variable:
+			self.var.value = self.value
+
+	def __str__(self):
+		return f"{str(self.var)} := {self.value}"

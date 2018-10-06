@@ -5,6 +5,7 @@ NUMBER = "NUMBER"
 OPERATOR = "OPERATOR"
 NAME = "NAME"
 GROUP_CHAR = "GROUP_CHAR"
+COMMA = "COMMA"
 
 class Token:
 	def __init__(self, type, value):
@@ -31,7 +32,8 @@ operator_chars = [
 	'<',
 	'>',
 	'=',
-	':'
+	':',
+	'!'
 ]
 
 named_operators = [
@@ -52,7 +54,13 @@ named_operators = [
 	'tan',
 	'arcsin',
 	'arccos',
-	'arctan'
+	'arctan',
+	'and',
+	'or',
+	'not',
+	'xor',
+	'any',
+	'all'
 ]
 
 group_chars = [
@@ -121,11 +129,25 @@ class Tokenizer:
 				self.advance()
 				return result
 
+			if self.char == ',':
+				result = Token(COMMA, self.char)
+				self.advance()
+				return result
+
+			raise SyntaxError
+
 		return Token(EOF, '\0')
 
-t = Tokenizer(input())
-print("Tokens:")
-token = t.get_next_token()
-while token.type != EOF:
-	print(token)
-	token = t.get_next_token()
+	def tokens(self):
+		token = self.get_next_token()
+		while token.type != EOF:
+			yield token
+			token = self.get_next_token()
+		return token
+
+if __name__ == '__main__':
+	inp = input('> ')
+	while inp != '':
+		t = Tokenizer(inp)
+		print("\n".join(str(tok) for tok in t.tokens()) + '\n')
+		inp = input('> ')
