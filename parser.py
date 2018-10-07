@@ -20,7 +20,7 @@ factor_operators = {
 	'.': DotProduct,
 	'*': Multiplication,
 	'/': Division,
-	'%': Modulus
+	'%': Modulo
 }
 
 term_operators = {
@@ -63,20 +63,23 @@ argument_list_operators = {
 }
 
 class Parser:
-	def __init__(self, tokens):
-		self.tokens = tokens
+	def __init__(self, tok_gen):
+		self.tokens = list(tok_gen.tokens())
 		self.pos = 0
 
 	@property
 	def token(self):
-		return self.tokens[self.pos]
+		if self.pos < len(self.tokens):
+			return self.tokens[self.pos]
+		self.pos -= 1
+		self.error()
 
 	def error(self):
 		print(f"Error on {self.token} at pos {self.pos}")
 		raise SyntaxError
 
-	def eat(self, type, value=None):
-		if self.token.type != type or (value and self.token.type != value):
+	def eat(self, token_type, value=None):
+		if self.token.type != token_type or (value and self.token.value != value):
 			self.error()
 		else:
 			self.pos += 1
@@ -86,13 +89,16 @@ class Parser:
 		self.eat(NAME)
 		
 		if self.token.type == 'GROUP':
-			arguments = [arg.symbol for arg in self.argument_list()]
+			arguments = [arg.symbol for arg in self.tuple_list()]
 			return Assignment(Variable(result.value), Function(arguments, self.expr()))
 		
 		self.eat(OPERATOR, ':=')
 		return Assignment(Variable(result.value), self.expr())
 
-	def argument_list(self):
+	def eval_statement(self):
+		return self.expr()
+
+	def tuple_list(self):
 		self.eat(GROUP, '(')
 		result = [self.expr()]
 		while self.token.type == COMMA:
@@ -142,14 +148,14 @@ class Parser:
 				return Inverse(self.expr())
 			
 			assert(token.value in argument_list_operators.keys())
-			args = self.argument_list()
+			args = self.tuple_list()
 			return argument_list_operators[token.value](*args)
 
 		if token.type == NAME:
 			self.eat(NAME)
 
 			if self.token.value == '(':
-				arguments = self.argument_list()
+				arguments = self.tuple_list()
 				return FunctionCall(token.value, argument)
 
 			if self.token.value == '[':
@@ -169,37 +175,50 @@ class Parser:
 			if token.value == '[':
 				return Vector(self.vector_constant())
 
-		self.error()
-
 	def binary_operator_list(self, operators, operand_function):
-		result = operand_function(self)
+		result = operand_function()
 
-		while self.token.type in operators.keys():
+		while self.pos < len(self.tokens) and self.token.value in operators.keys():
 			token = self.token
 			self.eat(OPERATOR)
-			result = operators[token.type](result, operand_function(self))
+			result = operators[token.value](result, operand_function())
 
 		return result
 
 	def power(self):
-		return self.binary_operator_list(power_operators, atom)
+		return self.binary_operator_list(power_operators, self.atom)
 
 	def factor(self):
-		return self.binary_operator_list(factor_operators, power)
+		return self.binary_operator_list(factor_operators, self.power)
 
 	def term(self):
-		return self.binary_operator_list(term_operators, factor)
+		return self.binary_operator_list(term_operators, self.factor)
 
 	def comparation(self):
-		return self.binary_operator_list(comparative_operators, term)
+		return self.binary_operator_list(comparative_operators, self.term)
 
 	def logic_expr(self):
-		return self.binary_operator_list(logic_operators, comparation)
+		return self.binary_operator_list(logic_operators, self.comparation)
 
 	def expr(self):
 		if self.token.value == 'not':
 			self.eat(OPERATOR)
 			return Negation(self.expr())
 
-		return self.term()
+		return self.logic_expr()
 
+if __name__ == '__main__':
+	while True:
+		option = input("E/A/VARS?> ")
+		
+		if option == 'VARS':
+			print('\n'.join([f'{symbol}: {str(value)}' for symbol, value in Variable.table.items()]))
+
+		else:
+			p = Parser(Tokenizer(input('> ')))
+			if option == 'E':
+				result = p.eval_statement()
+			elif option == 'A':
+				result = p.assignment()
+			
+			print(result.eval())

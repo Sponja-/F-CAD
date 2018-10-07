@@ -143,7 +143,7 @@ class Tokenizer:
 		while token.type != EOF:
 			yield token
 			token = self.get_next_token()
-		return token
+		yield token
 
 if __name__ == '__main__':
 	inp = input('> ')
