@@ -7,6 +7,7 @@ from logic import *
 from set_theory import *
 from simplify import *
 from calculus import *
+from statements import *
 
 power_operators = {
 	'^': Exponentiation,
@@ -98,7 +99,7 @@ class Parser:
 		result = self.token
 		self.eat(NAME)
 		
-		if self.token.type == 'GROUP':
+		if self.token.type == GROUP_CHAR:
 			arguments = [arg.symbol for arg in self.tuple_list()]
 			return Assignment(Variable(result.value), Function(arguments, self.expr()))
 		
@@ -109,39 +110,39 @@ class Parser:
 		return self.expr()
 
 	def tuple_list(self):
-		self.eat(GROUP, '(')
+		self.eat(GROUP_CHAR, '(')
 		result = [self.expr()]
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.expr())
-		self.eat(GROUP, ')')
+		self.eat(GROUP_CHAR, ')')
 		return result
 
 	def subscript_index(self):
-		self.eat(GROUP, '[')
+		self.eat(GROUP_CHAR, '[')
 		result = [self.expr()]
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.expr())
-		self.eat(GROUP, ']')
+		self.eat(GROUP_CHAR, ']')
 		return Vector(result)
 
 	def vector_constant_elem(self):
 		if self.token.value == '[':
 			return self.vector_constant()
 		if self.token.type == NUMBER:
-			result = token.value
+			result = self.token.value
 			self.eat(NUMBER)
-			return Number(result)
+			return result
 		self.error()
 
 	def vector_constant(self):
-		self.eat(GROUP, '[')
+		self.eat(GROUP_CHAR, '[')
 		result = [self.vector_constant_elem()]
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.vector_constant_elem())
-		self.eat(GROUP, ']')
+		self.eat(GROUP_CHAR, ']')
 		return result
 
 	def atom(self):
@@ -170,16 +171,16 @@ class Parser:
 
 			if self.token.value == '[':
 				index = self.subscript_index()
-				self.eat(GROUP)
+				self.eat(GROUP_CHAR)
 				return Subscript(token.value, index)
 
 			return Variable(token.value)
 
-		if token.type == GROUP:
+		if token.type == GROUP_CHAR:
 			if token.value == '(':
-				self.eat(GROUP)
+				self.eat(GROUP_CHAR)
 				token = self.expr()
-				self.eat(GROUP, ')')
+				self.eat(GROUP_CHAR, ')')
 				return token
 
 			if token.value == '[':
@@ -218,17 +219,11 @@ class Parser:
 		return self.logic_expr()
 
 if __name__ == '__main__':
-	while True:
-		option = input("E/A/VARS?> ")
-		
-		if option == 'VARS':
-			print('\n'.join([f'{symbol}: {str(value)}' for symbol, value in Variable.table.items()]))
+	p = Variable.table["print"] = Number(0)
 
-		else:
-			p = Parser(Tokenizer(input('> ')))
-			if option == 'E':
-				result = p.eval_statement()
-			elif option == 'A':
-				result = p.assignment()
-			
+	while True:
+		p = Variable.table["print"]
+		result = Parser(Tokenizer(input('> '))).assignment().eval()
+		
+		if p != Variable.table["print"]:
 			print(result.eval())

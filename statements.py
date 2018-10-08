@@ -56,7 +56,7 @@ class For(Statement):
 class While(Statement):
 	def __init__(self, condition, statement):
 		self.condition = condition
-		self.statement = 
+		self.statement = statement
 
 	def exec(self):
 		while self.condition.eval():
