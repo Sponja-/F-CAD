@@ -84,6 +84,16 @@ class Parser:
 		else:
 			self.pos += 1
 
+	def statement(self):
+		pass # TODO
+
+	def statement_list(self):
+		result = [self.statement()]
+		while self.token.type == SEMICOLON:
+			self.eat(SEMICOLON)
+			result.append(self.statement())
+		return result
+
 	def assignment(self):
 		result = self.token
 		self.eat(NAME)

@@ -1,11 +1,22 @@
 import re
 
-EOF = "EOF"
-NUMBER = "NUMBER"
-OPERATOR = "OPERATOR"
-NAME = "NAME"
-GROUP_CHAR = "GROUP_CHAR"
-COMMA = "COMMA"
+EOF = -1
+NUMBER = 0
+OPERATOR = 1
+NAME = 2
+GROUP_CHAR = 3
+COMMA = 4
+SEMICOLON = 5
+
+names = {
+	EOF: "EOF",
+	NUMBER: "NUMBER",
+	OPERATOR: "OPERATOR",
+	NAME: "NAME",
+	GROUP_CHAR: "GROUP_CHAR",
+	COMMA: "COMMA",
+	SEMICOLON: "SEMICOLON"
+}
 
 class Token:
 	def __init__(self, type, value):
@@ -13,7 +24,7 @@ class Token:
 		self.value = value
 
 	def __repr__(self):
-		return f"Token({self.type}, {self.value})"
+		return f"Token({names[self.type]}, {self.value})"
 
 	def __str__(self):
 		return f"{self.type}: {self.value}"
@@ -131,6 +142,11 @@ class Tokenizer:
 
 			if self.char == ',':
 				result = Token(COMMA, self.char)
+				self.advance()
+				return result
+
+			if self.char == ';':
+				result = Token(SEMICOLON, self.char)
 				self.advance()
 				return result
 
