@@ -101,6 +101,7 @@ class Parser:
 		
 		if self.token.type == GROUP_CHAR:
 			arguments = [arg.symbol for arg in self.tuple_list()]
+			self.eat(OPERATOR, ':=')
 			return Assignment(Variable(result.value), Function(arguments, self.expr()))
 		
 		self.eat(OPERATOR, ':=')
