@@ -9,6 +9,8 @@ from simplify import *
 from calculus import *
 from statements import *
 from flow_control import *
+from special_functions import *
+from argparse import ArgumentParser
 
 power_operators = {
 	'^': Exponentiation,
@@ -66,7 +68,8 @@ argument_list_operators = {
 	'arctan': ArcTangent,
 	'any': Any,
 	'all': All,
-	'derivate': Differentiate
+	'derivate': Differentiate,
+	'print': Print
 }
 
 class Parser:
@@ -81,6 +84,13 @@ class Parser:
 		self.pos -= 1
 		self.error()
 
+	@property
+	def next_token(self):
+		if self.pos < len(self.tokens) - 1:
+			return self.tokens[self.pos + 1]
+		self.pos -= 2
+		self.error()
+	
 	def error(self):
 		print(f"Error on {self.token} at pos {self.pos}")
 		raise SyntaxError
@@ -94,7 +104,7 @@ class Parser:
 	def find_next(self, type):
 		for i, token in enumerate(self.tokens[self.pos:]):
 			if token.type == type:
-				return i
+				return self.pos + i
 		return -1
 
 	def statement(self):
@@ -246,6 +256,8 @@ class Parser:
 				if self.token.type == QUESTION:
 					self.eat(QUESTION)
 					results.append(self.expr())
+					if self.token.type == SEMICOLON and self.next_token.type == CONDITION:
+						self.eat(SEMICOLON)
 				else:
 					default = conditions.pop()
 					break
@@ -260,10 +272,19 @@ class Parser:
 debug = False
 
 if __name__ == '__main__':
-	while True:
-		result = Parser(Tokenizer(input('> '))).statement_list()[-1]
-		value = result.eval()
-		if debug:
-			print(str(result))
-		elif value is not None:
-			print(value)
+	parser = ArgumentParser(description="Interprets a file, or works as a REPL if none is provided")
+	parser.add_argument('file', type=str, help='File to interpret', nargs='?')
+
+	args = parser.parse_args()
+
+	if args.file is not None:
+		with open(args.file, 'r') as file:
+			[statement.eval() for statement in Parser(Tokenizer(file.read())).statement_list() if statement is not None]
+	else:
+		while True:
+			result = Parser(Tokenizer(input('> '))).statement_list()[-1]
+			value = result.eval()
+			if debug:
+				print(str(result))
+			elif value is not None:
+				print(value)

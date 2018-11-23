@@ -28,7 +28,7 @@ special_chars = {
 	',': COMMA,
 	'\n': SEMICOLON,
 	'|': CONDITION,
-	'?': QUESTION
+	'?': QUESTION,
 }
 
 class Token:
@@ -40,7 +40,7 @@ class Token:
 		return f"Token({names[self.type]}, {self.value})"
 
 	def __str__(self):
-		return f"{self.type}: {self.value}"
+		return f"{names[self.type]}: {self.value}"
 
 number_regex = re.compile(r"^([+-]?([0-9]+)(\.([0-9]+))?)")
 name_regex = re.compile(r"^([A-Za-z_][A-Za-z_0-9]*)")
@@ -84,7 +84,8 @@ named_operators = [
 	'xor',
 	'any',
 	'all',
-	'derivate'
+	'derivate',
+	'print'
 ]
 
 group_chars = [
@@ -116,7 +117,7 @@ class Tokenizer:
 	def get_next_token(self):
 		while self.char != '\0':
 			
-			if self.char.isspace():
+			if self.char.isspace() and self.char != '\n':
 				self.skip_whitespace()
 				continue
 
@@ -160,6 +161,10 @@ class Tokenizer:
 			if self.char == ':' and self.next_char == '=':
 				self.advance(2)
 				return Token(ASSIGNMENT, ':=')
+
+			if self.char == '\\' and self.next_char == '\n':
+				self.advance(2)
+				continue
 
 			raise SyntaxError
 
