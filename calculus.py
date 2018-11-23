@@ -177,7 +177,7 @@ def derivative(f, var_symbol):
 	if type(f) is Function:
 		if var_symbol in f.value.symbols:
 			return derivative(f.value.operation, var_symbol)
-		return f
+		return zero
 	elif isinstance(f, Operation):
 		return operation_derivatives[type(f)](*f.operands, *(derivative(op, var_symbol) for op in f.operands))
 	elif type(f) is Variable:
@@ -190,12 +190,12 @@ def derivative(f, var_symbol):
 	return f
 
 class Differentiate(Operation):
-	def __init__(self, function, var_symbol):
+	def __init__(self, function, var):
 		operation = derivative
-		super().__init__(operation, function, var_symbol)
+		super().__init__(operation, function, var)
 
 	def eval(self):
-		return self.operation(self.operands[0] if type(self.operands[0]) is not Variable else self.operands[0].value, self.operands[1])
+		return self.operation(self.operands[0] if type(self.operands[0]) is not Variable else self.operands[0].value, self.operands[1].symbol)
 
 	def __str__(self):
 		return f"d({str(self.operands[0])})/d{self.opernads[1]}"

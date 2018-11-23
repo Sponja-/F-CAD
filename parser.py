@@ -45,6 +45,10 @@ logic_operators = {
 	'xor': ExclusiveDisjunction
 }
 
+unary_operators = {
+	'not': Negation
+}
+
 argument_list_operators = {
 	'sqrt': SquareRoot,
 	'root': NthRoot,
@@ -60,7 +64,8 @@ argument_list_operators = {
 	'arccos': ArcCosine,
 	'arctan': ArcTangent,
 	'any': Any,
-	'all': All
+	'all': All,
+	'derivate': Differentiate
 }
 
 class Parser:
@@ -85,8 +90,17 @@ class Parser:
 		else:
 			self.pos += 1
 
+	def find_next(self, type):
+		for i, token in enumerate(self.tokens[self.pos:]):
+			if token.type == type:
+				return i
+		return -1
+
 	def statement(self):
-		pass # TODO
+		types = [token.type for token in self.tokens[self.pos:self.find_next(SEMICOLON)]]
+		if ASSIGNMENT in types:
+			return self.assignment_statement()
+		return self.eval_statement()
 
 	def statement_list(self):
 		result = [self.statement()]
@@ -95,16 +109,16 @@ class Parser:
 			result.append(self.statement())
 		return result
 
-	def assignment(self):
+	def assignment_statement(self):
 		result = self.token
 		self.eat(NAME)
 		
 		if self.token.type == GROUP_CHAR:
 			arguments = [arg.symbol for arg in self.tuple_list()]
-			self.eat(OPERATOR, ':=')
+			self.eat(ASSIGNMENT)
 			return Assignment(Variable(result.value), Function(arguments, self.expr()))
 		
-		self.eat(OPERATOR, ':=')
+		self.eat(ASSIGNMENT)
 		return Assignment(Variable(result.value), self.expr())
 
 	def eval_statement(self):
@@ -168,7 +182,7 @@ class Parser:
 
 			if self.token.value == '(':
 				arguments = self.tuple_list()
-				return FunctionCall(token.value, argument)
+				return FunctionCall(Variable(token.value), *arguments)
 
 			if self.token.value == '[':
 				index = self.subscript_index()
@@ -212,19 +226,39 @@ class Parser:
 	def logic_expr(self):
 		return self.binary_operator_list(logic_operators, self.comparation)
 
-	def expr(self):
-		if self.token.value == 'not':
+	def unary_expr(self):
+		if self.token.value in unary_operators.keys():
+			token = self.token
 			self.eat(OPERATOR)
-			return Negation(self.expr())
+			return unary_operators[token.value](self.expr())
 
 		return self.logic_expr()
+
+	def conditional_list_expr(self):
+		if self.token.type == CONDITION:
+			conditions = []
+			results = []
+			default = None
+			while self.token.type == CONDITION:
+				self.eat(CONDITION)
+				conditions.append(self.expr())
+				if self.token.type == QUESTION:
+					results.append(self.expr())
+				else:
+					default = self.expr()
+					break
+			return Conditional(conditions, results, default)
+					
+		return self.unary_expr()
+
+
+	def expr(self):
+		return self.conditional_list_expr()
 
 if __name__ == '__main__':
 	p = Variable.table["print"] = Number(0)
 
 	while True:
-		p = Variable.table["print"]
-		result = Parser(Tokenizer(input('> '))).assignment().eval()
-		
-		if p != Variable.table["print"]:
-			print(result.eval())
+		result = Parser(Tokenizer(input('> '))).statement_list()[-1].eval()
+		if result is not None:
+			print(result)

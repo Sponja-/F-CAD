@@ -7,6 +7,9 @@ NAME = 2
 GROUP_CHAR = 3
 COMMA = 4
 SEMICOLON = 5
+CONDITION = 6
+QUESTION = 7
+ASSIGNMENT = 8
 
 names = {
 	EOF: "EOF",
@@ -15,7 +18,17 @@ names = {
 	NAME: "NAME",
 	GROUP_CHAR: "GROUP_CHAR",
 	COMMA: "COMMA",
-	SEMICOLON: "SEMICOLON"
+	SEMICOLON: "SEMICOLON",
+	CONDITION: "CONDITION",
+	QUESTION: "QUESTION",
+	ASSIGNMENT: "ASSIGNMENT"
+}
+
+special_chars = {
+	',': COMMA,
+	'\n': SEMICOLON,
+	'|': CONDITION,
+	'?': QUESTION
 }
 
 class Token:
@@ -43,7 +56,6 @@ operator_chars = [
 	'<',
 	'>',
 	'=',
-	':',
 	'!'
 ]
 
@@ -71,7 +83,8 @@ named_operators = [
 	'not',
 	'xor',
 	'any',
-	'all'
+	'all',
+	'derivate'
 ]
 
 group_chars = [
@@ -127,7 +140,7 @@ class Tokenizer:
 				return result
 
 			if self.char in operator_chars:
-				if self.char in ['<', '>', ':', '!'] and self.next_char == '=':
+				if self.char in ['<', '>', '!'] and self.next_char == '=':
 					result = Token(OPERATOR, self.char + self.next_char)
 					self.advance(2)
 					return result
@@ -140,15 +153,14 @@ class Tokenizer:
 				self.advance()
 				return result
 
-			if self.char == ',':
-				result = Token(COMMA, self.char)
+			if self.char in special_chars:
+				result = Token(special_chars[self.char], self.char)
 				self.advance()
 				return result
 
-			if self.char == ';':
-				result = Token(SEMICOLON, self.char)
-				self.advance()
-				return result
+			if self.char == ':' and self.next_char == '=':
+				self.advance(2)
+				return Token(ASSIGNMENT, ':=')
 
 			raise SyntaxError
 

@@ -3,7 +3,7 @@ from itertools import zip_longest
 class Constant:
 	def eval(self):
 		return self.value
-
+		
 	def __str__(self):
 		return str(self.value)
 
