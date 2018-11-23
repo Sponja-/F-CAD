@@ -194,7 +194,7 @@ class Differentiate(Operation):
 		operation = derivative
 		super().__init__(operation, function, var)
 
-	def eval(self):
+	def eval(self, **locals):
 		return self.operation(self.operands[0] if type(self.operands[0]) is not Variable else self.operands[0].value, self.operands[1].symbol)
 
 	def __str__(self):

@@ -90,7 +90,6 @@ named_operators = [
 group_chars = [
 	'(', ')',
 	'[', ']',
-	'|', '|',
 	'{', '}'
 ]
 

@@ -6,12 +6,12 @@ class Conditional(Operation):
 		self.results = results
 		self.default = default
 
-	def eval(self):
+	def eval(self, **locals):
 		for condition, result in zip(self.conditions, self.results):
-			if condition.eval():
-				return action.eval()
+			if condition.eval(**locals):
+				return result.eval(**locals)
 		if self.default is not None:
-			return self.default.eval()
+			return self.default.eval(**locals)
 	
 	def __str__(self):
 		return '\n' + \

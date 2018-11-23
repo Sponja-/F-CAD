@@ -8,6 +8,7 @@ from set_theory import *
 from simplify import *
 from calculus import *
 from statements import *
+from flow_control import *
 
 power_operators = {
 	'^': Exponentiation,
@@ -243,9 +244,10 @@ class Parser:
 				self.eat(CONDITION)
 				conditions.append(self.expr())
 				if self.token.type == QUESTION:
+					self.eat(QUESTION)
 					results.append(self.expr())
 				else:
-					default = self.expr()
+					default = conditions.pop()
 					break
 			return Conditional(conditions, results, default)
 					
@@ -255,10 +257,13 @@ class Parser:
 	def expr(self):
 		return self.conditional_list_expr()
 
-if __name__ == '__main__':
-	p = Variable.table["print"] = Number(0)
+debug = False
 
+if __name__ == '__main__':
 	while True:
-		result = Parser(Tokenizer(input('> '))).statement_list()[-1].eval()
-		if result is not None:
-			print(result)
+		result = Parser(Tokenizer(input('> '))).statement_list()[-1]
+		value = result.eval()
+		if debug:
+			print(str(result))
+		elif value is not None:
+			print(value)

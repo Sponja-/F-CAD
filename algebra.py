@@ -1,9 +1,12 @@
-from elements import BinaryOperation, Operation, Constant
+from elements import BinaryOperation, Operation, Constant, classes_for_values
 from numpy import array, arange, sum
 
 class Vector(Constant):
 	def __init__(self, elems):
 		self.value = array(elems)
+
+classes_for_values[list] = Vector
+classes_for_values[array] = Vector
 
 class Range(Operation):
 	def __init__(self, start, end, step=1):

@@ -1,7 +1,8 @@
 from itertools import zip_longest
+from numpy import array
 
 class Constant:
-	def eval(self):
+	def eval(self, **locals):
 		return self.value
 		
 	def __str__(self):
@@ -11,14 +12,21 @@ class Number(Constant):
 	def __init__(self, value):
 		self.value = value
 
+classes_for_values = {
+	int: Number,
+	float: Number
+}
+
 class Variable:
 	table = {}
 
 	def __init__(self, symbol):
 		self.symbol = symbol
 
-	def eval(self):
-		return Variable.table[self.symbol].eval()
+	def eval(self, **locals):
+		if self.symbol in locals.keys():
+			return locals[self.symbol].eval(**locals)
+		return Variable.table[self.symbol].eval(**locals)
 
 	@property
 	def value(self):
@@ -31,31 +39,14 @@ class Variable:
 	def __str__(self):
 		return self.symbol
 
-class temp_vars:
-	def __init__(self, **kwargs):
-		self.vars = kwargs
-	
-	def __enter__(self, **kwargs):
-		self.prev_values = {key: Variable.table.get(key, None) for key in self.vars.keys()}
-		for key, value in self.vars.items():
-			Variable.table[key] = value
-		
-	def __exit__(self, type, value, tb):
-		for key in self.vars.keys():
-			prev_value = self.prev_values[key]
-			if prev_value is not None:
-				Variable.table[key] = prev_value
-			else:
-				del Variable.table[key]			
-
 class Operation:
 	def __init__(self, operation, *operands, **kwargs):
 		self.symbol = kwargs.get("symbol", self.__class__.__name__)
 		self.operation = operation
 		self.operands = operands
 
-	def eval(self):
-		return self.operation(*(op.eval() for op in self.operands))
+	def eval(self, **locals):
+		return self.operation(*(op.eval(**locals) for op in self.operands))
 
 	def __str__(self):
 		return f"{self.symbol}({', '.join(str(op) for op in self.operands)})"
@@ -81,13 +72,16 @@ class Function(Constant):
 
 class FunctionCall(Operation):
 	def __init__(self, function, *args):
-		def operation(x, *y):
-			with temp_vars(**{key: val for key, val in zip_longest(x.symbols, y, fillvalue=None)}):
-				return x.operation.eval()
+		def operation(x, locals, *y):
+			new_locals = locals.copy()
+			for symbol, expr in zip_longest(x.symbols, y, fillvalue=None):
+				value = expr.eval(**new_locals)
+				new_locals[symbol] = classes_for_values[type(value)](value)
+			return x.operation.eval(**new_locals)
 		super().__init__(operation, function, *args)
 
-	def eval(self):
-		return self.operation(self.operands[0].eval(), *self.operands[1:])
+	def eval(self, **locals):
+		return self.operation(self.operands[0].eval(**locals), locals, *self.operands[1:])
 
 	def __str__(self):
 		return f"{str(self.operands[0])}({', '.join(str(op) for op in self.operands[1:])})"

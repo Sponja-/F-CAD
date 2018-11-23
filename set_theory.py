@@ -1,9 +1,11 @@
-from elements import Constant, Operation, BinaryOperation
+from elements import Constant, Operation, BinaryOperation, classes_for_values
 from itertools import product, permutations, combinations
 
 class Set(Constant):
 	def __init__(self, elems):
 		self.value = set(elems)
+
+classes_for_values[set] = Set
 
 class Union(BinaryOperation):
 	def __init__(self, set_1, set_2):
