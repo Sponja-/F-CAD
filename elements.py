@@ -1,5 +1,4 @@
 from itertools import zip_longest
-from numpy import array
 
 class Constant:
 	def eval(self, **locals):

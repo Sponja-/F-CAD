@@ -1,12 +1,12 @@
 from elements import BinaryOperation, Operation, Constant, classes_for_values
-from numpy import array, arange, sum
+from numpy import array, arange, sum, ndarray
 
 class Vector(Constant):
 	def __init__(self, elems):
 		self.value = array(elems)
 
 classes_for_values[list] = Vector
-classes_for_values[array] = Vector
+classes_for_values[ndarray] = Vector
 
 class Range(Operation):
 	def __init__(self, start, end, step=1):
@@ -18,7 +18,7 @@ class Range(Operation):
 
 class Subscript(Operation):
 	def __init__(self, vector, index):
-		operation = lambda x, y: x[y]
+		operation = lambda x, y: x[int(y)]
 		super().__init__(operation, vector, index)
 
 	def __str__(self):

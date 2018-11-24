@@ -10,6 +10,7 @@ SEMICOLON = 5
 CONDITION = 6
 QUESTION = 7
 ASSIGNMENT = 8
+RANGE = 9
 
 names = {
 	EOF: "EOF",
@@ -21,7 +22,8 @@ names = {
 	SEMICOLON: "SEMICOLON",
 	CONDITION: "CONDITION",
 	QUESTION: "QUESTION",
-	ASSIGNMENT: "ASSIGNMENT"
+	ASSIGNMENT: "ASSIGNMENT",
+	RANGE: "RANGE"
 }
 
 special_chars = {
@@ -56,7 +58,8 @@ operator_chars = [
 	'<',
 	'>',
 	'=',
-	'!'
+	'!',
+	'.'
 ]
 
 named_operators = [
@@ -85,7 +88,8 @@ named_operators = [
 	'any',
 	'all',
 	'derivate',
-	'print'
+	'print',
+	'graph'
 ]
 
 group_chars = [
@@ -138,6 +142,10 @@ class Tokenizer:
 					result = Token(NAME, name)
 				self.advance(end - start)
 				return result
+
+			if self.char == '.' and self.next_char == '.':
+				self.advance(2)
+				return Token(RANGE, '..')
 
 			if self.char in operator_chars:
 				if self.char in ['<', '>', '!'] and self.next_char == '=':

@@ -69,7 +69,14 @@ argument_list_operators = {
 	'any': Any,
 	'all': All,
 	'derivate': Differentiate,
-	'print': Print
+	'print': Print,
+	'graph': Graph
+}
+
+closing = {
+	'[': ']',
+	'(': ')',
+	'{': '}'
 }
 
 class Parser:
@@ -91,13 +98,13 @@ class Parser:
 		self.pos -= 2
 		self.error()
 	
-	def error(self):
-		print(f"Error on {self.token} at pos {self.pos}")
+	def error(self, message=""):
+		print(f"Error on {self.token} at pos {self.pos}:\n\t{message}")
 		raise SyntaxError
 
 	def eat(self, token_type, value=None):
 		if self.token.type != token_type or (value and self.token.value != value):
-			self.error()
+			self.error(f"Expected {names[token_type]}" + f" of value {value}" if value is not None else "")
 		else:
 			self.pos += 1
 
@@ -106,6 +113,19 @@ class Parser:
 			if token.type == type:
 				return self.pos + i
 		return -1
+
+	def find_closing(self):
+		value = self.token.value
+		assert(value in closing)
+		open_chars = 1
+		for i, token in enumerate(self.tokens[self.pos + 1:]):
+			if token.value == value:
+				open_chars += 1
+			elif token.value == closing[value]:
+				open_chars -= 1
+			if open_chars == 0:
+				return self.pos + i + 1
+		self.error(f"Couldn't find closing '{value}'")
 
 	def statement(self):
 		types = [token.type for token in self.tokens[self.pos:self.find_next(SEMICOLON)]]
@@ -118,7 +138,7 @@ class Parser:
 		while self.token.type == SEMICOLON:
 			self.eat(SEMICOLON)
 			result.append(self.statement())
-		return result
+		return StatementList(result)
 
 	def assignment_statement(self):
 		result = self.token
@@ -144,7 +164,7 @@ class Parser:
 		self.eat(GROUP_CHAR, ')')
 		return result
 
-	def subscript_index(self):
+	def subscript_index(self): # Not implemented
 		self.eat(GROUP_CHAR, '[')
 		result = [self.expr()]
 		while self.token.type == COMMA:
@@ -171,6 +191,18 @@ class Parser:
 		self.eat(GROUP_CHAR, ']')
 		return result
 
+	def range_expr(self):
+		self.eat(GROUP_CHAR, '[')
+		start = self.expr()
+		step = one
+		if self.token.type == COMMA:
+			self.eat(COMMA)
+			step = self.expr()
+		self.eat(RANGE)
+		end = self.expr()
+		self.eat(GROUP_CHAR, ']')
+		return Range(start, end, step)
+
 	def atom(self):
 		token = self.token
 
@@ -196,9 +228,10 @@ class Parser:
 				return FunctionCall(Variable(token.value), *arguments)
 
 			if self.token.value == '[':
-				index = self.subscript_index()
 				self.eat(GROUP_CHAR)
-				return Subscript(token.value, index)
+				index = self.expr()
+				self.eat(GROUP_CHAR, ']')
+				return Subscript(Variable(token.value), index)
 
 			return Variable(token.value)
 
@@ -210,6 +243,9 @@ class Parser:
 				return token
 
 			if token.value == '[':
+				types = [token.type for token in self.tokens[self.pos:self.find_closing()]]
+				if RANGE in types:
+					return self.range_expr()
 				return Vector(self.vector_constant())
 
 	def binary_operator_list(self, operators, operand_function):
@@ -282,9 +318,10 @@ if __name__ == '__main__':
 			[statement.eval() for statement in Parser(Tokenizer(file.read())).statement_list() if statement is not None]
 	else:
 		while True:
-			result = Parser(Tokenizer(input('> '))).statement_list()[-1]
-			value = result.eval()
+			result = Parser(Tokenizer(input('> '))).statement_list()
 			if debug:
 				print(str(result))
-			elif value is not None:
-				print(value)
+			else:
+				value = result.eval() 
+				if value is not None:
+					print(value)

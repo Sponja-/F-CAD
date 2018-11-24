@@ -1,9 +1,4 @@
-x := 2
-y := x + 2
-print(y)
+factorial(n) := | n > 0 ? n * factorial(n - 1)
+				| 1
 
-x := 3
-print(y)
-
-f(a) := a + 1
-print(f(3))
+print(factorial(10))
