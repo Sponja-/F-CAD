@@ -37,7 +37,7 @@ comparative_operators = {
 	'<=': LesserOrEqual,
 	'>': Greater,
 	'>=': GreaterOrEqual,
-	'=': Equal,
+	'==': Equal,
 	'!=': NotEqual,
 	'in': Contains
 }
@@ -134,10 +134,13 @@ class Parser:
 		return self.eval_statement()
 
 	def statement_list(self):
-		result = [self.statement()]
+		s = self.statement()
+		result = [s] if s is not None else []
 		while self.token.type == SEMICOLON:
 			self.eat(SEMICOLON)
-			result.append(self.statement())
+			s = self.statement()
+			if s is not None:
+				result.append(s)
 		return StatementList(result)
 
 	def assignment_statement(self):
@@ -194,14 +197,14 @@ class Parser:
 	def range_expr(self):
 		self.eat(GROUP_CHAR, '[')
 		start = self.expr()
-		step = one
+		second = None
 		if self.token.type == COMMA:
 			self.eat(COMMA)
-			step = self.expr()
+			second = self.expr()
 		self.eat(RANGE)
 		end = self.expr()
 		self.eat(GROUP_CHAR, ']')
-		return Range(start, end, step)
+		return Range(start, end, second)
 
 	def atom(self):
 		token = self.token
@@ -315,7 +318,7 @@ if __name__ == '__main__':
 
 	if args.file is not None:
 		with open(args.file, 'r') as file:
-			[statement.eval() for statement in Parser(Tokenizer(file.read())).statement_list() if statement is not None]
+			Parser(Tokenizer(file.read().strip())).statement_list().eval()
 	else:
 		while True:
 			result = Parser(Tokenizer(input('> '))).statement_list()

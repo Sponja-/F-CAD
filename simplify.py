@@ -1,4 +1,4 @@
-from elements import Number, Operation, Constant
+from elements import Number, Operation, Constant, classes_for_values
 from arithmetic import *
 from constants import zero, one
 from set_theory import Set
@@ -84,21 +84,12 @@ operation_simplifications = {
 	LogarithmBaseE: s_LogarithmBaseE
 }
 
-classes_for_values = {
-	set: Set,
-	int: Number,
-	float: Number,
-	list: Vector,
-	array: Vector
-}
-
 def simplify(op):
 	if isinstance(op, Operation):
 		if all([isinstance(x, Constant) for x in op.operands]):
 			result = op.operation(*[x.value for x in op.operands])
 			return classes_for_values[type(result)](result)
+		op.operands = [simplify(child) for child in op.operands]
 		if type(op) in operation_simplifications:
-			op.operands = [simplify(child) for child in op.operands]
 			return operation_simplifications[type(op)](op)
 	return op
-

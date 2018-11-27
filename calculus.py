@@ -184,7 +184,7 @@ def derivative(f, var_symbol):
 		if f.symbol == var_symbol:
 			return one
 		else:
-			return f
+			return zero
 	elif type(f) is Number:
 		return zero
 	return f

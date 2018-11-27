@@ -148,7 +148,7 @@ class Tokenizer:
 				return Token(RANGE, '..')
 
 			if self.char in operator_chars:
-				if self.char in ['<', '>', '!'] and self.next_char == '=':
+				if self.char in ['<', '>', '!', '='] and self.next_char == '=':
 					result = Token(OPERATOR, self.char + self.next_char)
 					self.advance(2)
 					return result
