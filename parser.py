@@ -257,17 +257,6 @@ class Parser:
 
 		if token.type == NAME:
 			self.eat(NAME)
-
-			if self.token.value == '(':
-				arguments = self.tuple_list()
-				return FunctionCall(Variable(token.value), *arguments)
-
-			if self.token.value == '[':
-				self.eat(GROUP_CHAR)
-				index = self.expr()
-				self.eat(GROUP_CHAR, ']')
-				return Subscript(Variable(token.value), index)
-
 			return Variable(token.value)
 
 		if token.type == GROUP_CHAR:
@@ -287,6 +276,19 @@ class Parser:
 				return Set(*result)
 
 
+	def trailer_expr(self):
+		result = self.atom()
+		while self.token.value in closing.keys():
+			if self.token.value == '(':
+				arguments = self.tuple_list()
+				result = FunctionCall(result, *arguments)
+			elif self.token.value == '[':
+				self.eat(GROUP_CHAR)
+				indeces = self.expr_list()
+				self.eat(GROUP_CHAR)
+				result = Subscript(result, *indeces)
+		return result
+
 	def binary_operator_list(self, operators, operand_function):
 		result = operand_function()
 
@@ -301,7 +303,7 @@ class Parser:
 		return result
 
 	def power(self):
-		return self.binary_operator_list(power_operators, self.atom)
+		return self.binary_operator_list(power_operators, self.trailer_expr)
 
 	def factor(self):
 		return self.binary_operator_list(factor_operators, self.power)

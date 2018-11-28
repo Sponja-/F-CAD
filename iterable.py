@@ -1,8 +1,24 @@
 from elements import Constant, Operation, FunctionCall, classes_for_values
 from constants import one
 from arithmetic import Addition
-from numpy import array, arange, sum, append
+from numpy import array, arange, sum, append, ndarray
 from itertools import count, islice
+
+class Subscript(Operation):
+	def __init__(self, vector, *indeces):
+		def operation(x, *y):
+			if type(x) is ndarray:
+				return x[tuple(int(elem) for elem in y)]
+			if hasattr(x, "__getitem__"):
+				return x[int(y)]
+			iterable = iter(x)
+			for i, n in enumerate(iterable):
+				if i == y:
+					return n
+		super().__init__(operation, vector, *indeces)
+
+	def __str__(self):
+		return f"{str(self.operands[0])}[{str(self.operands[1])}]"
 
 class Len(Operation):
 	def __init__(self, arr):
@@ -21,11 +37,19 @@ class Range(Operation):
 		super().__init__(operation, start, end, second)
 
 	def __str__(self):
-		return f"({str(self.operands[0])}, {str(self.operands[0] + self.operands[2])} ... {str(self.operands[1])})"
+		return f"({str(self.operands[0])}, {self.operands[2]}..{str(self.operands[1])})"
 
 class AppendTo(Operation):
 	def __init__(self, vec, appended):
-		operation = append
+		def operation(x, y):
+			if not hasattr(y, "shape") or not hasattr(x, "shape"):
+				return append(x, y)
+			if len(x.shape) == len(y.shape):
+				return append(x, y, axis=0)
+			if len(x.shape) == len(y.shape) - 1:
+				return append([x], y, axis=0)
+			if len(x.shape) == len(y.shape) + 1:
+				return append(x, [y], axis=0)
 		super().__init__(operation, vec, appended)
 
 class ListComprehension(Operation):

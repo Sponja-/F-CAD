@@ -11,14 +11,6 @@ class Vector(Operation):
 classes_for_values[ndarray] = lambda x: Vector(*(classes_for_values[type(elem)](elem) for elem in x))
 classes_for_values[list] = classes_for_values[ndarray]
 
-class Subscript(Operation):
-	def __init__(self, vector, index):
-		operation = lambda x, y: x[int(y)]
-		super().__init__(operation, vector, index)
-
-	def __str__(self):
-		return f"{str(self.operands[0])}[{str(self.operands[1])}]"
-
 class DotProduct(BinaryOperation):
 	def __init__(self, vector_1, vector_2):
 		operation = lambda x, y: sum(x * y)

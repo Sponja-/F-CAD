@@ -92,8 +92,7 @@ class Where(Operation):
 	def __init__(self, op, assignments):
 		def operation(x, locals, y):
 			new_locals = locals.copy()
-			for symbol, expr in y.items():
-				new_locals[symbol] = expr
+			new_locals.update(y)
 			return x.eval(**new_locals)
 		super().__init__(operation, op, assignments)
 

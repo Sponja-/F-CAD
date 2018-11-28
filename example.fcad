@@ -14,3 +14,8 @@ max(list) := | len(list) <= 1 ? list[0]
 			 where m := max(tail(list))
 
 print(max([1, 5, 2, 10, 1]))
+
+reverse(list) := | len(list) <= 1 ? [list[0]]
+				 | otherwise reverse(tail(list)) : list[0]
+
+print(reverse([1, 2, 3, 4]))
