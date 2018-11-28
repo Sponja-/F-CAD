@@ -7,6 +7,11 @@ class Print(Operation):
 		operation = print
 		super().__init__(operation, operand, symbol="print")
 
+class Input(Operation):
+	def __init__(self):
+		operation = lambda: float(input())
+		super().__init__(operation)
+
 class Graph(Operation):
 	def __init__(self, free, bound):
 		def operation(x, y):

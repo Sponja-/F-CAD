@@ -7,7 +7,7 @@ NAME = 2
 GROUP_CHAR = 3
 COMMA = 4
 SEMICOLON = 5
-CONDITION = 6
+SEPARATOR = 6
 QUESTION = 7
 ASSIGNMENT = 8
 RANGE = 9
@@ -21,7 +21,7 @@ names = {
 	GROUP_CHAR: "GROUP_CHAR",
 	COMMA: "COMMA",
 	SEMICOLON: "SEMICOLON",
-	CONDITION: "CONDITION",
+	SEPARATOR: "SEPARATOR",
 	QUESTION: "QUESTION",
 	ASSIGNMENT: "ASSIGNMENT",
 	RANGE: "RANGE",
@@ -31,7 +31,7 @@ names = {
 special_chars = {
 	',': COMMA,
 	'\n': SEMICOLON,
-	'|': CONDITION,
+	'|': SEPARATOR,
 	'?': QUESTION,
 }
 
@@ -68,7 +68,8 @@ operator_chars = [
 keywords = [
 	'for',
 	'in',
-	'otherwise'
+	'otherwise',
+	'where'
 ]
 
 named = [
@@ -105,7 +106,8 @@ named = [
 	'union',
 	'intersection',
 	'len',
-	'slice'
+	'slice',
+	'input'
 ]
 
 group_chars = [

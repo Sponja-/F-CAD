@@ -7,3 +7,10 @@ sum(list) := | len(list) <= 1 ? list[0]
 			 | otherwise list[0] + sum(tail(list))
 
 print(sum([1, 2, 3, 100]))
+
+max(list) := | len(list) <= 1 ? list[0]
+			 | list[0] > m ? list[0]
+			 | otherwise m
+			 where m := max(tail(list))
+
+print(max([1, 5, 2, 10, 1]))

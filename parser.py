@@ -80,7 +80,8 @@ argument_list_operators = {
 	'take': Take,
 	'tail': Tail,
 	'len': Len,
-	'slice': Slice
+	'slice': Slice,
+	'input': Input
 }
 
 closing = {
@@ -114,7 +115,7 @@ class Parser:
 
 	def eat(self, token_type, value=None):
 		if self.token.type != token_type or (value and self.token.value != value):
-			self.error(f"Expected {names[token_type]}" + f" of value {value}" if value is not None else "")
+			self.error(f"Expected {names[token_type]}" + (f" of value {value}" if value is not None else ""))
 		else:
 			self.pos += 1
 
@@ -139,6 +140,8 @@ class Parser:
 
 	def statement(self):
 		types = [token.type for token in self.tokens[self.pos:self.find_next(SEMICOLON)]]
+		if debug:
+			print(*(names[type] for type in types))
 
 		if ASSIGNMENT in types:
 			return self.assignment_statement()
@@ -171,6 +174,8 @@ class Parser:
 		return self.expr()
 
 	def expr_list(self):
+		if self.token.value in closing.values():
+			return []
 		result = [self.expr()]
 
 		while self.token.type == COMMA:
@@ -225,10 +230,6 @@ class Parser:
 		return ListComprehension(term_symbol, term, conditions, list)
 
 	def bracket_expr(self):
-		if self.next_token.value == ']':
-			self.eat(GROUP_CHAR, '[')
-			self.eat(GROUP_CHAR, ']')
-			return Vector()
 		tokens = [(token.type, token.value) for token in self.tokens[self.pos:self.find_closing()]]
 		types, values = [[token[i] for token in tokens] for i in (0, 1)]
 		if 'for' in values:
@@ -323,28 +324,51 @@ class Parser:
 		return self.logic_expr()
 
 	def conditional_list_expr(self):
-		if self.token.type == CONDITION:
+		if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
+			self.eat(SEMICOLON)
+		if self.token.type == SEPARATOR:
 			conditions = []
 			results = []
 			default = None
-			while self.token.type == CONDITION:
-				self.eat(CONDITION)
+			while self.token.type == SEPARATOR:
+				self.eat(SEPARATOR)
 				if self.token.value == "otherwise":
 					self.eat(KEYWORD)
-					default = self.expr()
+					default = self.unary_expr()
 					break
 				else:
-					conditions.append(self.expr())
+					conditions.append(self.unary_expr())
 					self.eat(QUESTION)
-					results.append(self.expr())
-					if self.token.type == SEMICOLON and self.next_token.type == CONDITION:
+					results.append(self.unary_expr())
+					if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
 						self.eat(SEMICOLON)
 			return Conditional(conditions, results, default)
 		return self.unary_expr()
 
+	def where_expr(self):
+		result = self.conditional_list_expr()
+		if self.token.type == SEMICOLON and self.next_token.value == 'where':
+			self.eat(SEMICOLON)
+		if self.token.value == "where":
+			self.eat(KEYWORD)
+			if self.token.type == SEPARATOR:
+				assignments = {}
+				while self.token.type == SEPARATOR:
+					self.eat(SEPARATOR)
+					assignment = self.assignment_statement()
+					assignments[assignment.var.symbol] = assignment.value
+					if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
+						self.eat(SEMICOLON)
+			else:
+				assignment = self.assignment_statement()
+				assignments = {assignment.var.symbol: assignment.value}
+			return Where(result, assignments)
+		return result
+
+
 
 	def expr(self):
-		return self.conditional_list_expr()
+		return self.where_expr()
 
 debug = False
 

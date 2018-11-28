@@ -87,3 +87,15 @@ class FunctionCall(Operation):
 
 	def __str__(self):
 		return f"{str(self.operands[0])}({', '.join(str(op) for op in self.operands[1:])})"
+
+class Where(Operation):
+	def __init__(self, op, assignments):
+		def operation(x, locals, y):
+			new_locals = locals.copy()
+			for symbol, expr in y.items():
+				new_locals[symbol] = expr
+			return x.eval(**new_locals)
+		super().__init__(operation, op, assignments)
+
+	def eval(self, **locals):
+		return self.operation(self.operands[0], locals, self.operands[1])
