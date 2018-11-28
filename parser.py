@@ -41,7 +41,9 @@ comparative_operators = {
 	'>=': GreaterOrEqual,
 	'==': Equal,
 	'!=': NotEqual,
-	'in': Contains
+	'in': Contains,
+	'union': Union,
+	'intersection': Intersection
 }
 
 logic_operators = {
@@ -76,7 +78,9 @@ argument_list_operators = {
 	'scatter': Scatter,
 	'show': Show,
 	'take': Take,
-	'tail': Tail
+	'tail': Tail,
+	'len': Len,
+	'slice': Slice
 }
 
 closing = {
@@ -166,36 +170,24 @@ class Parser:
 	def eval_statement(self):
 		return self.expr()
 
-	def tuple_list(self):
-		self.eat(GROUP_CHAR, '(')
+	def expr_list(self):
 		result = [self.expr()]
 
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.expr())
 
+		return result
+
+	def tuple_list(self):
+		self.eat(GROUP_CHAR, '(')
+		result = self.expr_list()
 		self.eat(GROUP_CHAR, ')')
 		return result
 
-	def subscript_index(self): # Not implemented
-		self.eat(GROUP_CHAR, '[')
-		result = [self.expr()]
-
-		while self.token.type == COMMA:
-			self.eat(COMMA)
-			result.append(self.expr())
-
-		self.eat(GROUP_CHAR, ']')
-		return Vector(*result)
-
 	def vector_constant(self):
 		self.eat(GROUP_CHAR, '[')
-		result = [self.expr()]
-
-		while self.token.type == COMMA:
-			self.eat(COMMA)
-			result.append(self.expr())
-
+		result = self.expr_list()
 		self.eat(GROUP_CHAR, ']')
 		return result
 
@@ -287,6 +279,13 @@ class Parser:
 			if token.value == '[':
 				return self.bracket_expr()
 
+			if token.value == '{':
+				self.eat(GROUP_CHAR)
+				result = self.expr_list()
+				self.eat(GROUP_CHAR, '}')
+				return Set(*result)
+
+
 	def binary_operator_list(self, operators, operand_function):
 		result = operand_function()
 
@@ -330,17 +329,17 @@ class Parser:
 			default = None
 			while self.token.type == CONDITION:
 				self.eat(CONDITION)
-				conditions.append(self.expr())
-				if self.token.type == QUESTION:
+				if self.token.value == "otherwise":
+					self.eat(KEYWORD)
+					default = self.expr()
+					break
+				else:
+					conditions.append(self.expr())
 					self.eat(QUESTION)
 					results.append(self.expr())
 					if self.token.type == SEMICOLON and self.next_token.type == CONDITION:
 						self.eat(SEMICOLON)
-				else:
-					default = conditions.pop()
-					break
 			return Conditional(conditions, results, default)
-					
 		return self.unary_expr()
 
 

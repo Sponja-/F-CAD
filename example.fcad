@@ -1,4 +1,9 @@
 factorial(n) := | n > 0 ? n * factorial(n - 1)
-				| 1
+				| otherwise 1
 
 print(factorial(10))
+
+sum(list) := | len(list) <= 1 ? list[0]
+			 | otherwise list[0] + sum(tail(list))
+
+print(sum([1, 2, 3, 100]))

@@ -4,6 +4,11 @@ from arithmetic import Addition
 from numpy import array, arange, sum, append
 from itertools import count, islice
 
+class Len(Operation):
+	def __init__(self, arr):
+		operation = len
+		super().__init__(operation, arr)
+
 class Range(Operation):
 	def __init__(self, start, end=None, second=None):
 		if second is None:
@@ -32,7 +37,7 @@ class ListComprehension(Operation):
 				new_locals[term_symbol] = classes_for_values[type(x)](x)
 				if conditions.eval(**new_locals):
 					result.append(term.eval(**new_locals))
-			return result
+			return array(result)
 		super().__init__(operation, term_symbol, term, conditions, list)
 
 	def eval(self, **locals):
@@ -40,7 +45,7 @@ class ListComprehension(Operation):
 
 
 class Take(Operation):
-	def __init__(self, arr, amount):
+	def __init__(self, arr, amount=one):
 		operation = lambda x, y: array(list(islice(x, int(y))))
 		super().__init__(operation, arr, amount)
 
@@ -48,7 +53,7 @@ def tail(arr, amount):
 	iterable = iter(arr)
 	index = 0
 	for x in iterable:
-		if index > amount:
+		if index >= amount:
 			yield x
 			break
 		index += 1
@@ -56,9 +61,14 @@ def tail(arr, amount):
 		yield x
 
 class Tail(Operation):
-	def __init__(self, arr, amount):
+	def __init__(self, arr, amount=one):
 		operation = lambda x, y: array(list(tail(x, int(y))))
 		super().__init__(operation, arr, amount)
+
+class Slice(Operation):
+	def __init__(self, arr, start, end, step=one):
+		operation = lambda x, y, z, w: array(list(islice(x, int(y), int(z), int(w))))
+		super().__init__(operation, arr, start, end, step)
 
 class SumElements(Operation):
 	def __init__(self, terms):

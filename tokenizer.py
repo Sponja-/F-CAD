@@ -101,7 +101,11 @@ named = [
 	'scatter',
 	'show',
 	'take',
-	'tail'
+	'tail',
+	'union',
+	'intersection',
+	'len',
+	'slice'
 ]
 
 group_chars = [

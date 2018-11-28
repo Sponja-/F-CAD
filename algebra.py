@@ -8,8 +8,8 @@ class Vector(Operation):
 			return array(x)
 		super().__init__(operation, *elems)
 
-classes_for_values[list] = Vector
-classes_for_values[ndarray] = Vector
+classes_for_values[ndarray] = lambda x: Vector(*(classes_for_values[type(elem)](elem) for elem in x))
+classes_for_values[list] = classes_for_values[ndarray]
 
 class Subscript(Operation):
 	def __init__(self, vector, index):
