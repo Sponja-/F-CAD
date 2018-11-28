@@ -2,9 +2,11 @@ from elements import BinaryOperation, Operation, Constant, classes_for_values
 from constants import one
 from numpy import array, ndarray
 
-class Vector(Constant):
-	def __init__(self, elems):
-		self.value = array(elems)
+class Vector(Operation):
+	def __init__(self, *elems):
+		def operation(*x):
+			return array(x)
+		super().__init__(operation, *elems)
 
 classes_for_values[list] = Vector
 classes_for_values[ndarray] = Vector

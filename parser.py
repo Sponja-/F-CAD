@@ -186,24 +186,15 @@ class Parser:
 			result.append(self.expr())
 
 		self.eat(GROUP_CHAR, ']')
-		return Vector(result)
-
-	def vector_constant_elem(self):
-		if self.token.value == '[':
-			return self.vector_constant()
-		if self.token.type == NUMBER:
-			result = self.token.value
-			self.eat(NUMBER)
-			return result
-		self.error()
+		return Vector(*result)
 
 	def vector_constant(self):
 		self.eat(GROUP_CHAR, '[')
-		result = [self.vector_constant_elem()]
+		result = [self.expr()]
 
 		while self.token.type == COMMA:
 			self.eat(COMMA)
-			result.append(self.vector_constant_elem())
+			result.append(self.expr())
 
 		self.eat(GROUP_CHAR, ']')
 		return result
@@ -245,14 +236,14 @@ class Parser:
 		if self.next_token.value == ']':
 			self.eat(GROUP_CHAR, '[')
 			self.eat(GROUP_CHAR, ']')
-			return Vector([])
+			return Vector()
 		tokens = [(token.type, token.value) for token in self.tokens[self.pos:self.find_closing()]]
 		types, values = [[token[i] for token in tokens] for i in (0, 1)]
 		if 'for' in values:
 			return self.list_comp_expr()
 		if RANGE in types:
 			return self.range_expr()
-		return Vector(self.vector_constant())
+		return Vector(*self.vector_constant())
 
 	def atom(self):
 		token = self.token
