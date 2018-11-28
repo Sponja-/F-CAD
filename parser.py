@@ -10,6 +10,7 @@ from calculus import *
 from statements import *
 from flow_control import *
 from special_functions import *
+from iterable import *
 from argparse import ArgumentParser
 
 power_operators = {
@@ -29,7 +30,8 @@ factor_operators = {
 
 term_operators = {
 	'+': Addition,
-	'-': Substraction
+	'-': Substraction,
+	':': AppendTo
 }
 
 comparative_operators = {
@@ -68,9 +70,13 @@ argument_list_operators = {
 	'arctan': ArcTangent,
 	'any': Any,
 	'all': All,
-	'derivate': Differentiate,
+	'diff': Differentiate,
 	'print': Print,
-	'graph': Graph
+	'graph': Graph,
+	'scatter': Scatter,
+	'show': Show,
+	'take': Take,
+	'tail': Tail
 }
 
 closing = {
@@ -129,8 +135,10 @@ class Parser:
 
 	def statement(self):
 		types = [token.type for token in self.tokens[self.pos:self.find_next(SEMICOLON)]]
+
 		if ASSIGNMENT in types:
 			return self.assignment_statement()
+
 		return self.eval_statement()
 
 	def statement_list(self):
@@ -161,18 +169,22 @@ class Parser:
 	def tuple_list(self):
 		self.eat(GROUP_CHAR, '(')
 		result = [self.expr()]
+
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.expr())
+
 		self.eat(GROUP_CHAR, ')')
 		return result
 
 	def subscript_index(self): # Not implemented
 		self.eat(GROUP_CHAR, '[')
 		result = [self.expr()]
+
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.expr())
+
 		self.eat(GROUP_CHAR, ']')
 		return Vector(result)
 
@@ -188,9 +200,11 @@ class Parser:
 	def vector_constant(self):
 		self.eat(GROUP_CHAR, '[')
 		result = [self.vector_constant_elem()]
+
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.vector_constant_elem())
+
 		self.eat(GROUP_CHAR, ']')
 		return result
 
@@ -198,13 +212,47 @@ class Parser:
 		self.eat(GROUP_CHAR, '[')
 		start = self.expr()
 		second = None
+		end = None
+
 		if self.token.type == COMMA:
 			self.eat(COMMA)
 			second = self.expr()
+
 		self.eat(RANGE)
-		end = self.expr()
+
+		if self.token.value != ']':
+			end = self.expr()
+
 		self.eat(GROUP_CHAR, ']')
 		return Range(start, end, second)
+
+	def list_comp_expr(self):
+		self.eat(GROUP_CHAR, '[')
+		term = self.expr()
+		self.eat(KEYWORD, "for")
+		term_symbol = self.token.value
+		self.eat(NAME)
+		self.eat(KEYWORD, "in")
+		list = self.expr()
+		conditions = one
+		if self.token.type == CONDITION:
+			self.eat(CONDITION)
+			conditions = self.expr()
+		self.eat(GROUP_CHAR, ']')
+		return ListComprehension(term_symbol, term, conditions, list)
+
+	def bracket_expr(self):
+		if self.next_token.value == ']':
+			self.eat(GROUP_CHAR, '[')
+			self.eat(GROUP_CHAR, ']')
+			return Vector([])
+		tokens = [(token.type, token.value) for token in self.tokens[self.pos:self.find_closing()]]
+		types, values = [[token[i] for token in tokens] for i in (0, 1)]
+		if 'for' in values:
+			return self.list_comp_expr()
+		if RANGE in types:
+			return self.range_expr()
+		return Vector(self.vector_constant())
 
 	def atom(self):
 		token = self.token
@@ -246,17 +294,17 @@ class Parser:
 				return token
 
 			if token.value == '[':
-				types = [token.type for token in self.tokens[self.pos:self.find_closing()]]
-				if RANGE in types:
-					return self.range_expr()
-				return Vector(self.vector_constant())
+				return self.bracket_expr()
 
 	def binary_operator_list(self, operators, operand_function):
 		result = operand_function()
 
-		while self.pos < len(self.tokens) and self.token.value in operators.keys():
+		while self.token.value in operators.keys():
 			token = self.token
-			self.eat(OPERATOR)
+			if self.token.value == 'in':
+				self.eat(KEYWORD)
+			else:
+				self.eat(OPERATOR)
 			result = operators[token.value](result, operand_function())
 
 		return result

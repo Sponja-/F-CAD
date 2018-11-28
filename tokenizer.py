@@ -11,6 +11,7 @@ CONDITION = 6
 QUESTION = 7
 ASSIGNMENT = 8
 RANGE = 9
+KEYWORD = 10
 
 names = {
 	EOF: "EOF",
@@ -23,7 +24,8 @@ names = {
 	CONDITION: "CONDITION",
 	QUESTION: "QUESTION",
 	ASSIGNMENT: "ASSIGNMENT",
-	RANGE: "RANGE"
+	RANGE: "RANGE",
+	KEYWORD: "KEYWORD"
 }
 
 special_chars = {
@@ -59,10 +61,17 @@ operator_chars = [
 	'>',
 	'=',
 	'!',
-	'.'
+	'.',
+	':'
 ]
 
-named_operators = [
+keywords = [
+	'for',
+	'in',
+	'otherwise'
+]
+
+named = [
 	'sqrt',
 	'root',
 	'log',
@@ -74,7 +83,6 @@ named_operators = [
 	'col',
 	'P',
 	'C',
-	'in',
 	'sin',
 	'cos',
 	'tan',
@@ -87,9 +95,13 @@ named_operators = [
 	'xor',
 	'any',
 	'all',
-	'derivate',
+	'diff',
 	'print',
-	'graph'
+	'graph',
+	'scatter',
+	'show',
+	'take',
+	'tail'
 ]
 
 group_chars = [
@@ -136,7 +148,9 @@ class Tokenizer:
 			if name_match is not None:
 				start, end = name_match.span()
 				name = self.text[self.pos + start: self.pos + end]
-				if name in named_operators:
+				if name in keywords:
+					result = Token(KEYWORD, name)
+				elif name in named:
 					result = Token(OPERATOR, name)
 				else:
 					result = Token(NAME, name)
@@ -146,6 +160,10 @@ class Tokenizer:
 			if self.char == '.' and self.next_char == '.':
 				self.advance(2)
 				return Token(RANGE, '..')
+
+			if self.char == ':' and self.next_char == '=':
+				self.advance(2)
+				return Token(ASSIGNMENT, ':=')
 
 			if self.char in operator_chars:
 				if self.char in ['<', '>', '!', '='] and self.next_char == '=':
@@ -165,10 +183,6 @@ class Tokenizer:
 				result = Token(special_chars[self.char], self.char)
 				self.advance()
 				return result
-
-			if self.char == ':' and self.next_char == '=':
-				self.advance(2)
-				return Token(ASSIGNMENT, ':=')
 
 			if self.char == '\\' and self.next_char == '\n':
 				self.advance(2)

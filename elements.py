@@ -1,4 +1,5 @@
 from itertools import zip_longest
+from numpy import float64
 
 class Constant:
 	def eval(self, **locals):
@@ -13,7 +14,8 @@ class Number(Constant):
 
 classes_for_values = {
 	int: Number,
-	float: Number
+	float: Number,
+	float64: Number
 }
 
 class Variable:
@@ -84,4 +86,3 @@ class FunctionCall(Operation):
 
 	def __str__(self):
 		return f"{str(self.operands[0])}({', '.join(str(op) for op in self.operands[1:])})"
-

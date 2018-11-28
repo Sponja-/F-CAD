@@ -1,7 +1,6 @@
 from elements import BinaryOperation, Operation, Constant, classes_for_values
 from constants import one
-from arithmetic import Addition
-from numpy import array, arange, sum, ndarray
+from numpy import array, ndarray
 
 class Vector(Constant):
 	def __init__(self, elems):
@@ -9,15 +8,6 @@ class Vector(Constant):
 
 classes_for_values[list] = Vector
 classes_for_values[ndarray] = Vector
-
-class Range(Operation):
-	def __init__(self, start, end, second=None):
-		if second is None: second = Addition(start, one)
-		operation = lambda x, y, z: arange(x, y, z - x)
-		super().__init__(operation, start, end, second)
-
-	def __str__(self):
-		return f"({str(self.operands[0])}, {str(self.operands[0] + self.operands[2])} ... {str(self.operands[1])})"
 
 class Subscript(Operation):
 	def __init__(self, vector, index):
@@ -42,15 +32,10 @@ class Magnitude(Operation):
 
 class Row(BinaryOperation):
 	def __init__(self, matrix, index):
-		operation = lambda x, y: x[y]
+		operation = lambda x, y: x[int(y)]
 		super().__init__(operation, matrix, index, symbol="row")
 
 class Column(BinaryOperation):
 	def __init__(self, matrix, index):
-		operation = lambda x, y: x[:, y]
+		operation = lambda x, y: x[:, int(y)]
 		super().__init__(operation, matrix, index, symbol="col")
-
-class SumElements(Operation):
-	def __init__(self, terms):
-		operation = lambda x: sum(x)
-		super().__init__(operation, terms, symbol="sum")
