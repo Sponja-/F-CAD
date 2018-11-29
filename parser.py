@@ -223,8 +223,8 @@ class Parser:
 		self.eat(KEYWORD, "in")
 		list = self.expr()
 		conditions = one
-		if self.token.type == CONDITION:
-			self.eat(CONDITION)
+		if self.token.type == SEPARATOR:
+			self.eat(SEPARATOR)
 			conditions = self.expr()
 		self.eat(GROUP_CHAR, ']')
 		return ListComprehension(term_symbol, term, conditions, list)
