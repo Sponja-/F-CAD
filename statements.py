@@ -28,7 +28,6 @@ class Assignment(Statement):
 
 	def exec(self):
 		self.var.value = self.value
-		return self.value
 
 	def __str__(self):
 		return f"{str(self.var)} := {self.value}"

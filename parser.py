@@ -332,12 +332,12 @@ class Parser:
 				assignments = {}
 				while self.token.type == SEPARATOR:
 					self.eat(SEPARATOR)
-					assignment = self.assignment_statement(absolute_assignment=False)
+					assignment = self.assignment_expr(absolute_assignment=False)
 					assignments[assignment.var.symbol] = assignment.value
 					if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
 						self.eat(SEMICOLON)
 			else:
-				assignment = self.assignment_statement(absolute_assignment=False)
+				assignment = self.assignment_expr(absolute_assignment=False)
 				assignments = {assignment.var.symbol: assignment.value}
 			return Where(result, assignments)
 		return result
@@ -352,8 +352,12 @@ class Parser:
 		result = self.token
 		self.eat(NAME)
 		
-		if self.token.type == GROUP_CHAR:
-			arguments = [arg.symbol for arg in self.tuple_list()]
+		if self.token.value == '(':
+			try:
+				arguments = [arg.symbol for arg in self.tuple_list()]
+			except AttributeError:
+				self.pos = start_pos
+				return self.where_expr()
 			if self.token.type == ASSIGNMENT:
 				self.eat(ASSIGNMENT)
 				return a(Variable(result.value), Function(arguments, self.expr()))
