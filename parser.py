@@ -138,41 +138,15 @@ class Parser:
 				return self.pos + i + 1
 		self.error(f"Couldn't find closing '{value}'")
 
-	def statement(self):
-		types = [token.type for token in self.tokens[self.pos:self.find_next(SEMICOLON)]]
-		if debug:
-			print(*(names[type] for type in types))
-
-		if ASSIGNMENT in types:
-			return self.assignment_statement()
-
-		return self.eval_statement()
-
 	def statement_list(self):
-		s = self.statement()
+		s = self.expr()
 		result = [s] if s is not None else []
 		while self.token.type == SEMICOLON:
 			self.eat(SEMICOLON)
-			s = self.statement()
+			s = self.expr()
 			if s is not None:
 				result.append(s)
 		return StatementList(result)
-
-	def assignment_statement(self, **kwargs):
-		result = self.token
-		self.eat(NAME)
-		a = AbsoluteAssignment if kwargs.get("absolute_assignment", absolute_assignment_default) else Assignment
-		
-		if self.token.type == GROUP_CHAR:
-			arguments = [arg.symbol for arg in self.tuple_list()]
-			self.eat(ASSIGNMENT)
-			return a(Variable(result.value), Function(arguments, self.expr()))
-		
-		self.eat(ASSIGNMENT)
-		return a(Variable(result.value), self.expr())
-
-	def eval_statement(self):
-		return self.expr()
 
 	def expr_list(self):
 		if self.token.value in closing.values():
@@ -368,10 +342,32 @@ class Parser:
 			return Where(result, assignments)
 		return result
 
+	def assignment_expr(self, **kwargs):
+		a = AbsoluteAssignment if kwargs.get("absolute_assignment", absolute_assignment_default) else Assignment
+		start_pos = self.pos
+
+		if self.token.type != NAME:
+			return self.where_expr()
+
+		result = self.token
+		self.eat(NAME)
+		
+		if self.token.type == GROUP_CHAR:
+			arguments = [arg.symbol for arg in self.tuple_list()]
+			if self.token.type == ASSIGNMENT:
+				self.eat(ASSIGNMENT)
+				return a(Variable(result.value), Function(arguments, self.expr()))
+		
+		if self.token.type == ASSIGNMENT:
+			self.eat(ASSIGNMENT)
+			return a(Variable(result.value), self.expr())
+		else:
+			self.pos = start_pos
+			return self.where_expr()
 
 
 	def expr(self):
-		return self.where_expr()
+		return self.assignment_expr()
 
 debug = False
 absolute_assignment_default = True
@@ -392,5 +388,5 @@ if __name__ == '__main__':
 				print(str(result))
 			else:
 				value = result.eval() 
-				if value is not None:
+				if not isinstance(result[-1], Statement):
 					print(value)

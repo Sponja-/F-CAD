@@ -36,3 +36,4 @@ class Show(Operation):
 
 	def eval(self, **locals):
 		self.operation(self.operands[0])
+		return self.operands[0].eval(**locals)
