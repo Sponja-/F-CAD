@@ -158,17 +158,18 @@ class Parser:
 				result.append(s)
 		return StatementList(result)
 
-	def assignment_statement(self):
+	def assignment_statement(self, **kwargs):
 		result = self.token
 		self.eat(NAME)
+		a = AbsoluteAssignment if kwargs.get("absolute_assignment", absolute_assignment_default) else Assignment
 		
 		if self.token.type == GROUP_CHAR:
 			arguments = [arg.symbol for arg in self.tuple_list()]
 			self.eat(ASSIGNMENT)
-			return Assignment(Variable(result.value), Function(arguments, self.expr()))
+			return a(Variable(result.value), Function(arguments, self.expr()))
 		
 		self.eat(ASSIGNMENT)
-		return Assignment(Variable(result.value), self.expr())
+		return a(Variable(result.value), self.expr())
 
 	def eval_statement(self):
 		return self.expr()
@@ -357,12 +358,12 @@ class Parser:
 				assignments = {}
 				while self.token.type == SEPARATOR:
 					self.eat(SEPARATOR)
-					assignment = self.assignment_statement()
+					assignment = self.assignment_statement(absolute_assignment=False)
 					assignments[assignment.var.symbol] = assignment.value
 					if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
 						self.eat(SEMICOLON)
 			else:
-				assignment = self.assignment_statement()
+				assignment = self.assignment_statement(absolute_assignment=False)
 				assignments = {assignment.var.symbol: assignment.value}
 			return Where(result, assignments)
 		return result
@@ -373,6 +374,7 @@ class Parser:
 		return self.where_expr()
 
 debug = False
+absolute_assignment_default = True
 
 if __name__ == '__main__':
 	parser = ArgumentParser(description="Interprets a file, or works as a REPL if none is provided")

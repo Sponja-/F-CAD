@@ -133,7 +133,7 @@ class Tokenizer:
 		self.pos += amount
 
 	def skip_whitespace(self):
-		while self.char != '\0' and self.char.isspace():
+		while self.char != '\0' and self.char.isspace() and self.char != '\n':
 			self.advance()
 
 	def get_next_token(self):
@@ -167,9 +167,9 @@ class Tokenizer:
 				self.advance(2)
 				return Token(RANGE, '..')
 
-			if self.char == ':' and self.next_char == '=':
-				self.advance(2)
-				return Token(ASSIGNMENT, ':=')
+			if self.char == '=' and self.next_char != '=':
+				self.advance()
+				return Token(ASSIGNMENT, '=')
 
 			if self.char in operator_chars:
 				if self.char in ['<', '>', '!', '='] and self.next_char == '=':

@@ -20,32 +20,39 @@ class Negation(Operation):
 		operation = lambda x: not bool(x)
 		super().__init__(operation, boolean_1, boolean_2, symbol='not')
 
-class Equal(BinaryOperation):
+class ChainedBinaryOperation(BinaryOperation):
+	def __init__(self, operation, value_1, value_2, **kwargs):
+		super().__init__(operation, value_1, value_2, **kwargs)
+		if type(self.operands[0]) == type(self):
+			new_self = Conjunction(self.operands[0], type(self)(self.operands[0].operands[1], self.operands[1]))
+			self.__dict__.update(new_self.__dict__) # Unsafe 
+
+class Equal(ChainedBinaryOperation):
 	def __init__(self, value_1, value_2):
 		operation = lambda x, y: x == y
-		super().__init__(operation, value_1, value_2, symbol='=')
+		super().__init__(operation, value_1, value_2, symbol='==')
 
-class NotEqual(BinaryOperation):
+class NotEqual(ChainedBinaryOperation):
 	def __init__(self, value_1, value_2):
 		operation = lambda x, y: x != y
 		super().__init__(operation, value_1, value_2, symbol='!=')
 
-class Lesser(BinaryOperation):
+class Lesser(ChainedBinaryOperation):
 	def __init__(self, value_1, value_2):
 		operation = lambda x, y: x < y
 		super().__init__(operation, value_1, value_2, symbol='<')
 
-class LesserOrEqual(BinaryOperation):
+class LesserOrEqual(ChainedBinaryOperation):
 	def __init__(self, value_1, value_2):
 		operation = lambda x, y: x <= y
 		super().__init__(operation, value_1, value_2, symbol='<=')
 
-class Greater(BinaryOperation):
+class Greater(ChainedBinaryOperation):
 	def __init__(self, value_1, value_2):
 		operation = lambda x, y: x > y
 		super().__init__(operation, value_1, value_2, symbol='>')
 
-class GreaterOrEqual(BinaryOperation):
+class GreaterOrEqual(ChainedBinaryOperation):
 	def __init__(self, value_1, value_2):
 		operation = lambda x, y: x >= y
 		super().__init__(operation, value_1, value_2, symbol='>=')

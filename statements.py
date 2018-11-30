@@ -24,12 +24,16 @@ class Assignment(Statement):
 		self.value = value
 
 	def exec(self):
-		if type(self.var) is Variable:
-			self.var.value = self.value
-			return
-		else:
-			self.var = self.value.eval()
-			return
+		self.var.value = self.value
 
 	def __str__(self):
 		return f"{str(self.var)} := {self.value}"
+
+class AbsoluteAssignment(Statement):
+	def __init__(self, var, value):
+		self.var = var
+		self.value = value
+
+	def exec(self):
+		val = self.value.eval()
+		self.var.value = classes_for_values[type(val)](val)

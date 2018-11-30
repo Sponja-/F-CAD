@@ -12,12 +12,6 @@ class Number(Constant):
 	def __init__(self, value):
 		self.value = value
 
-classes_for_values = {
-	int: Number,
-	float: Number,
-	float64: Number
-}
-
 class Variable:
 	table = {}
 
@@ -71,6 +65,15 @@ class func:
 class Function(Constant):
 	def __init__(self, var_symbols, operation):
 		self.value = func(var_symbols, operation)
+
+
+classes_for_values = {
+	int: Number,
+	float: Number,
+	float64: Number,
+	bool: Number,
+	func: lambda x: Function(x.symbols, x.operation)
+}
 
 class FunctionCall(Operation):
 	def __init__(self, function, *args):
