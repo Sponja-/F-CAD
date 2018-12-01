@@ -30,7 +30,7 @@ names = {
 
 special_chars = {
 	',': COMMA,
-	'\n': SEMICOLON,
+	';': SEMICOLON,
 	'|': SEPARATOR,
 	'?': QUESTION,
 }
@@ -69,7 +69,8 @@ keywords = [
 	'for',
 	'in',
 	'otherwise',
-	'where'
+	'where',
+	'return'
 ]
 
 named = [
@@ -133,13 +134,13 @@ class Tokenizer:
 		self.pos += amount
 
 	def skip_whitespace(self):
-		while self.char != '\0' and self.char.isspace() and self.char != '\n':
+		while self.char != '\0' and self.char.isspace():
 			self.advance()
 
 	def get_next_token(self):
 		while self.char != '\0':
 			
-			if self.char.isspace() and self.char != '\n':
+			if self.char.isspace():
 				self.skip_whitespace()
 				continue
 
@@ -189,10 +190,6 @@ class Tokenizer:
 				result = Token(special_chars[self.char], self.char)
 				self.advance()
 				return result
-
-			if self.char == '\\' and self.next_char == '\n':
-				self.advance(2)
-				continue
 
 			raise SyntaxError
 

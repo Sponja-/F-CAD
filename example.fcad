@@ -1,21 +1,36 @@
-factorial(n) = | n > 0 ? n * factorial(n - 1)
-			   | otherwise 1
+a = 10 + 2;
+print(a ^ 2 * 100);
 
-print(factorial(10))
+factorial(n) = | n > 0 ? n * factorial(n - 1)
+			   | otherwise 1;
+
+print(factorial(10));
+
+b = [1, 2, 3, 4];
+c = [2..6];
+d = [2,4..10];
+print(b + c + d ^ 2);
 
 sum(list) = | len(list) <= 1 ? list[0]
-			| otherwise list[0] + sum(tail(list))
+			| otherwise list[0] + sum(tail(list));
 
-print(sum([1, 2, 3, 100]))
+print(sum([1, 2, 3, 100]));
 
 max(list) = | len(list) <= 1 ? list[0]
 			| list[0] > m ? list[0]
 			| otherwise m
-			where m = max(tail(list))
+			where m = max(tail(list));
 
-print(max([1, 5, 2, 10, 1]))
+print(max([1, 5, 2, 10, 1]));
 
 reverse(list) = | len(list) <= 1 ? [list[0]]
-				| otherwise reverse(tail(list)) : list[0]
+				| otherwise reverse(tail(list)) : list[0];
 
-print(reverse([1, 2, 3, 4]))
+print(reverse([1, 2, 3, 4]));
+
+func(x) = {
+	a = 2 * x;
+	return a;
+};
+
+print(func(10));

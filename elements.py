@@ -66,7 +66,6 @@ class Function(Constant):
 	def __init__(self, var_symbols, operation):
 		self.value = func(var_symbols, operation)
 
-
 classes_for_values = {
 	int: Number,
 	float: Number,
@@ -75,6 +74,12 @@ classes_for_values = {
 	func: lambda x: Function(x.symbols, x.operation)
 }
 
+class ret_val:
+	def __init__(self, value):
+		self.value = value
+
+classes_for_values[ret_val] = lambda x: classes_for_values[ret_val.value]
+
 class FunctionCall(Operation):
 	def __init__(self, function, *args):
 		def operation(x, locals, *y):
@@ -82,7 +87,8 @@ class FunctionCall(Operation):
 			for symbol, expr in zip_longest(x.symbols, y, fillvalue=None):
 				value = expr.eval(**new_locals)
 				new_locals[symbol] = classes_for_values[type(value)](value)
-			return x.operation.eval(**new_locals)
+			ret = x.operation.eval(**new_locals)
+			return ret.value if type(ret) is ret_val else ret
 		super().__init__(operation, function, *args)
 
 	def eval(self, **locals):

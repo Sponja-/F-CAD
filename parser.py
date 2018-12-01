@@ -141,7 +141,7 @@ class Parser:
 	def statement_list(self):
 		s = self.expr()
 		result = [s] if s is not None else []
-		while self.token.type == SEMICOLON:
+		while self.token.value != '}' and self.token.type != EOF:
 			self.eat(SEMICOLON)
 			s = self.expr()
 			if s is not None:
@@ -301,8 +301,6 @@ class Parser:
 		return self.logic_expr()
 
 	def conditional_list_expr(self):
-		if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
-			self.eat(SEMICOLON)
 		if self.token.type == SEPARATOR:
 			conditions = []
 			results = []
@@ -317,15 +315,11 @@ class Parser:
 					conditions.append(self.unary_expr())
 					self.eat(QUESTION)
 					results.append(self.unary_expr())
-					if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
-						self.eat(SEMICOLON)
 			return Conditional(conditions, results, default)
 		return self.unary_expr()
 
 	def where_expr(self):
 		result = self.conditional_list_expr()
-		if self.token.type == SEMICOLON and self.next_token.value == 'where':
-			self.eat(SEMICOLON)
 		if self.token.value == "where":
 			self.eat(KEYWORD)
 			if self.token.type == SEPARATOR:
@@ -334,8 +328,6 @@ class Parser:
 					self.eat(SEPARATOR)
 					assignment = self.assignment_expr(absolute_assignment=False)
 					assignments[assignment.var.symbol] = assignment.value
-					if self.token.type == SEMICOLON and self.next_token.type == SEPARATOR:
-						self.eat(SEMICOLON)
 			else:
 				assignment = self.assignment_expr(absolute_assignment=False)
 				assignments = {assignment.var.symbol: assignment.value}
@@ -360,7 +352,7 @@ class Parser:
 				return self.where_expr()
 			if self.token.type == ASSIGNMENT:
 				self.eat(ASSIGNMENT)
-				return a(Variable(result.value), Function(arguments, self.expr()))
+				return a(Variable(result.value), Function(arguments, self.statement_block()))
 		
 		if self.token.type == ASSIGNMENT:
 			self.eat(ASSIGNMENT)
@@ -369,9 +361,23 @@ class Parser:
 			self.pos = start_pos
 			return self.where_expr()
 
+	def return_expr(self):
+		if self.token.value == 'return':
+			self.eat(KEYWORD)
+			return Return(self.assignment_expr())
+		return self.assignment_expr()
 
 	def expr(self):
-		return self.assignment_expr()
+		return self.return_expr()
+
+	def statement_block(self):
+		if self.token.value != '{':
+			return self.expr()
+		self.eat(GROUP_CHAR)
+		result = self.statement_list()
+		self.eat(GROUP_CHAR, '}')
+		return result
+
 
 debug = False
 absolute_assignment_default = True
@@ -387,10 +393,10 @@ if __name__ == '__main__':
 			Parser(Tokenizer(file.read().strip())).statement_list().eval()
 	else:
 		while True:
-			result = Parser(Tokenizer(input('> '))).statement_list()
+			result = Parser(Tokenizer(input('> '))).expr()
 			if debug:
 				print(str(result))
 			else:
 				value = result.eval() 
-				if not isinstance(result[-1], Statement):
+				if not isinstance(result, Statement):
 					print(value)

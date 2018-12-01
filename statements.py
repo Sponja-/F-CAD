@@ -1,5 +1,4 @@
-from elements import Variable
-from simplify import classes_for_values
+from elements import Variable, classes_for_values, ret_val
 
 class Statement:
 	def exec(self, **locals):
@@ -8,12 +7,22 @@ class Statement:
 	def eval(self, **locals):
 		return self.exec(**locals)
 
+class Return:
+	def __init__(self, operation):
+		self.operation = operation
+
+	def eval(self, **locals):
+		return ret_val(self.operation.eval(**locals))
+
 class StatementList(Statement):
 	def __init__(self, statements):
 		self.statements = statements
 
-	def exec(self):
-		return [s.eval() for s in self.statements][-1]
+	def exec(self, **locals):
+		for statement in self.statements:
+			value = statement.eval(**locals)
+			if type(value) is ret_val:
+				return value
 
 	def __getitem__(self, index):
 		return self.statements[index]
@@ -26,18 +35,21 @@ class Assignment(Statement):
 		self.var = var
 		self.value = value
 
-	def exec(self):
-		self.var.value = self.value
+	def exec(self, **locals):
+		if self.var.symbol in locals:
+			locals[var.symbol] = self.value
+		else:
+			self.var.value = self.value
 
 	def __str__(self):
 		return f"{str(self.var)} := {self.value}"
 
-class AbsoluteAssignment(Statement):
+class AbsoluteAssignment(Assignment):
 	def __init__(self, var, value):
-		self.var = var
-		self.value = value
+		super().__init__(var, value)
 
 	def exec(self, **locals):
 		val = self.value.eval(**locals)
-		self.var.value = classes_for_values[type(val)](val)
-		return val
+		self.value = classes_for_values[type(val)](val)
+		super().exec(**locals)
+		return self.value.eval(**locals)

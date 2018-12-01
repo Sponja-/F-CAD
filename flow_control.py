@@ -1,6 +1,6 @@
 from elements import *
 
-class Conditional(Operation):
+class Conditional:
 	def __init__(self, conditions, results, default=None):
 		self.conditions = conditions
 		self.results = results
@@ -17,3 +17,24 @@ class Conditional(Operation):
 		return '\n' + \
 			   '\n'.join(f"| {str(condition)} ? {str(result)}" for condition, result in zip(self.conditions, self.results)) + \
 			   (f"\n| {str(self.default)}" if self.default is not None else '\n')
+
+class ForLoop:
+	def __init__(self, symbol, range, operation):
+		self.symbol = symbol
+		self.range = range
+		self.operation = operation
+
+	def eval(self, **locals):
+		new_locals = locals.copy()
+		for elem in self.range.eval():
+			new_locals[symbol] = elem
+			operation.eval(**new_locals)
+
+class WhileLoop:
+	def __init__(self, condition, operation):
+		self.condition = condition
+		self.operation = operation
+
+	def eval(self, **locals):
+		while self.condition.eval(**locals):
+			self.operation.eval(**locals)
