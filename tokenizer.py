@@ -46,7 +46,7 @@ class Token:
 	def __str__(self):
 		return f"{names[self.type]}: {self.value}"
 
-number_regex = re.compile(r"^([+-]?([0-9]+)(\.([0-9]+))?)")
+number_regex = re.compile(r"^([0-9]+)(\.([0-9]+))?")
 name_regex = re.compile(r"^([A-Za-z_][A-Za-z_0-9]*)")
 
 operator_chars = [

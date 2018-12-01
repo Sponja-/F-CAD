@@ -52,10 +52,6 @@ logic_operators = {
 	'xor': ExclusiveDisjunction
 }
 
-unary_operators = {
-	'not': Negation
-}
-
 argument_list_operators = {
 	'sqrt': SquareRoot,
 	'root': NthRoot,
@@ -221,11 +217,7 @@ class Parser:
 			return Number(token.value)
 
 		if token.type == OPERATOR:
-			self.eat(OPERATOR)
-
-			if token.value == '-':
-				return Inverse(self.expr())
-			
+			self.eat(OPERATOR)	
 			assert(token.value in argument_list_operators.keys())
 			args = self.tuple_list()
 			return argument_list_operators[token.value](*args)
@@ -280,8 +272,14 @@ class Parser:
 	def power(self):
 		return self.binary_operator_list(power_operators, self.trailer_expr)
 
+	def negative_expr(self):
+		if self.token.value == '-':
+			self.eat(OPERATOR)
+			return Opposite(self.power())
+		return self.power()
+
 	def factor(self):
-		return self.binary_operator_list(factor_operators, self.power)
+		return self.binary_operator_list(factor_operators, self.negative_expr)
 
 	def term(self):
 		return self.binary_operator_list(term_operators, self.factor)
@@ -292,11 +290,10 @@ class Parser:
 	def logic_expr(self):
 		return self.binary_operator_list(logic_operators, self.comparation)
 
-	def unary_expr(self):
-		if self.token.value in unary_operators.keys():
-			token = self.token
+	def not_expr(self):
+		if self.token.value == "not":
 			self.eat(OPERATOR)
-			return unary_operators[token.value](self.expr())
+			return Negation(self.expr())
 
 		return self.logic_expr()
 
@@ -309,14 +306,14 @@ class Parser:
 				self.eat(SEPARATOR)
 				if self.token.value == "otherwise":
 					self.eat(KEYWORD)
-					default = self.unary_expr()
+					default = self.not_expr()
 					break
 				else:
-					conditions.append(self.unary_expr())
+					conditions.append(self.not_expr())
 					self.eat(QUESTION)
-					results.append(self.unary_expr())
+					results.append(self.not_expr())
 			return Conditional(conditions, results, default)
-		return self.unary_expr()
+		return self.not_expr()
 
 	def where_expr(self):
 		result = self.conditional_list_expr()

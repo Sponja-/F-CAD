@@ -76,12 +76,12 @@ class Modulo(BinaryOperation):
 class Opposite(Operation):
 	def __init__(self, number):
 		operation = lambda x: -x
-		super.__init__(operation, number, symbol="-")
+		super().__init__(operation, number, symbol="-")
 
 class Inverse(Operation):
 	def __init__(self, number):
 		operation = lambda x: 1 / x
-		super.__init__(operation, number, symbol="inv")
+		super().__init__(operation, number, symbol="inv")
 
 class AbsoluteValue(Operation):
 	def __init__(self, number):
