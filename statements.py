@@ -30,6 +30,16 @@ class StatementList(Statement):
 	def __str__(self):
 		return '\n'.join(str(s) for s in self.statements)
 
+class ScopedStatements(StatementList):
+	def __init__(self, statements):
+		self.statements = statements
+
+	def exec(self, **locals):
+		old = Variable.table.copy()
+		ret_val = super().exec(**locals)
+		Variable.table = old
+		return ret_val
+
 class Assignment(Statement):
 	def __init__(self, var, value):
 		self.var = var

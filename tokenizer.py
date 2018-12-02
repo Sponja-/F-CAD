@@ -70,7 +70,8 @@ keywords = [
 	'in',
 	'otherwise',
 	'where',
-	'return'
+	'return',
+	'while'
 ]
 
 named = [

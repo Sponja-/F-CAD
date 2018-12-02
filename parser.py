@@ -134,16 +134,6 @@ class Parser:
 				return self.pos + i + 1
 		self.error(f"Couldn't find closing '{value}'")
 
-	def statement_list(self):
-		s = self.expr()
-		result = [s] if s is not None else []
-		while self.token.value != '}' and self.token.type != EOF:
-			self.eat(SEMICOLON)
-			s = self.expr()
-			if s is not None:
-				result.append(s)
-		return StatementList(result)
-
 	def expr_list(self):
 		if self.token.value in closing.values():
 			return []
@@ -152,6 +142,20 @@ class Parser:
 		while self.token.type == COMMA:
 			self.eat(COMMA)
 			result.append(self.expr())
+
+		return result
+
+	def name_list(self):
+		if self.token.type != NAME:
+			return []
+
+		result = [self.token.value]
+		self.eat(NAME)
+
+		while self.token.type == COMMA:
+			self.eat(COMMA)
+			result.append(self.token.value)
+			self.eat(NAME)
 
 		return result
 
@@ -332,44 +336,96 @@ class Parser:
 		return result
 
 	def assignment_expr(self, **kwargs):
-		a = AbsoluteAssignment if kwargs.get("absolute_assignment", absolute_assignment_default) else Assignment
+		assign = AbsoluteAssignment if kwargs.get("absolute_assignment", absolute_assignment_default) else Assignment
 		start_pos = self.pos
 
 		if self.token.type != NAME:
 			return self.where_expr()
-
-		result = self.token
-		self.eat(NAME)
 		
-		if self.token.value == '(':
+		if self.next_token.value == '(':
+			symbol = self.token
+			self.eat(NAME)
+			self.eat(GROUP_CHAR, '(')
+			
 			try:
-				arguments = [arg.symbol for arg in self.tuple_list()]
-			except AttributeError:
+				arguments = self.name_list()
+			except:
 				self.pos = start_pos
 				return self.where_expr()
-			if self.token.type == ASSIGNMENT:
+			
+			if self.token.value == ')' and self.next_token.type == ASSIGNMENT:
+				self.eat(GROUP_CHAR, ')')
 				self.eat(ASSIGNMENT)
-				return a(Variable(result.value), Function(arguments, self.statement_block()))
+				return assign(Variable(symbol.value), Function(arguments, self.statement_block()))
+			else:
+				self.pos = start_pos
+				return self.where_expr()
+
 		
+		try:
+			symbols = self.name_list()
+		except:
+			self.pos = start_pos
+			return self.where_expr()
+
 		if self.token.type == ASSIGNMENT:
 			self.eat(ASSIGNMENT)
-			return a(Variable(result.value), self.expr())
+			result = []
+			exprs = self.expr_list()
+			assert(len(symbols) == len(exprs))
+			for symbol, expr in zip(symbols, exprs):
+				result.append(assign(Variable(symbol), expr))
+			if len(result) == 1:
+				return result[0]
+			return StatementList(result)
 		else:
 			self.pos = start_pos
 			return self.where_expr()
 
-	def return_expr(self):
-		if self.token.value == 'return':
-			self.eat(KEYWORD)
-			return Return(self.assignment_expr())
+	def expr(self):
 		return self.assignment_expr()
 
-	def expr(self):
-		return self.return_expr()
+	def return_statement(self):
+		if self.token.value == 'return':
+			self.eat(KEYWORD)
+			return Return(self.expr())
+		return self.expr()
+
+	def for_statement(self):
+		if self.token.value == 'for':
+			self.eat(KEYWORD)
+			symbols = self.name_list()
+			self.eat(KEYWORD, 'in')
+			range = self.expr()
+			operation = self.statement_block()
+			return ForLoop(symbols, range, operation)
+		return self.return_statement()
+
+	def while_statement(self):
+		if self.token.value == 'while':
+			self.eat(KEYWORD)
+			condition = self.expr()
+			operation = self.statement_block()
+			return WhileLoop(condition, operation)
+		return self.for_statement()
+
+	def statement(self):
+		return self.while_statement()
+
+	def statement_list(self):
+		s = self.statement()
+		result = [s] if s is not None else []
+		while self.token.value != '}' and self.token.type != EOF:
+			self.eat(SEMICOLON)
+			s = self.statement()
+			if s is not None:
+				result.append(s)
+		return ScopedStatements(result)
 
 	def statement_block(self):
+		print(self.pos)
 		if self.token.value != '{':
-			return self.expr()
+			return self.statement()
 		self.eat(GROUP_CHAR)
 		result = self.statement_list()
 		self.eat(GROUP_CHAR, '}')

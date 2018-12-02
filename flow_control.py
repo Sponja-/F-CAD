@@ -19,16 +19,20 @@ class Conditional:
 			   (f"\n| {str(self.default)}" if self.default is not None else '\n')
 
 class ForLoop:
-	def __init__(self, symbol, range, operation):
-		self.symbol = symbol
+	def __init__(self, symbols, range, operation):
+		self.symbols = symbols
 		self.range = range
 		self.operation = operation
 
 	def eval(self, **locals):
 		new_locals = locals.copy()
-		for elem in self.range.eval():
-			new_locals[symbol] = elem
-			operation.eval(**new_locals)
+		for value in self.range.eval(**locals):
+			if len(self.symbols) <= 1:
+				new_locals[self.symbols[0]] = classes_for_values[type(value)](value)
+			else:
+				for symbol, val in zip(self.symbols, value):
+					new_locals[symbol] = classes_for_values[type(value)](value)
+			self.operation.eval(**new_locals)
 
 class WhileLoop:
 	def __init__(self, condition, operation):
