@@ -356,7 +356,7 @@ class Parser:
 			if self.token.value == ')' and self.next_token.type == ASSIGNMENT:
 				self.eat(GROUP_CHAR, ')')
 				self.eat(ASSIGNMENT)
-				return assign(Variable(symbol.value), Function(arguments, self.statement_block()))
+				return assign(Variable(symbol.value), Function(arguments, self.statement_block(scoped = True)))
 			else:
 				self.pos = start_pos
 				return self.where_expr()
@@ -394,9 +394,11 @@ class Parser:
 	def for_statement(self):
 		if self.token.value == 'for':
 			self.eat(KEYWORD)
+			self.eat(GROUP_CHAR, '(')
 			symbols = self.name_list()
 			self.eat(KEYWORD, 'in')
 			range = self.expr()
+			self.eat(GROUP_CHAR, ')')
 			operation = self.statement_block()
 			return ForLoop(symbols, range, operation)
 		return self.return_statement()
@@ -404,7 +406,9 @@ class Parser:
 	def while_statement(self):
 		if self.token.value == 'while':
 			self.eat(KEYWORD)
+			self.eat(GROUP_CHAR, '(')
 			condition = self.expr()
+			self.eat(GROUP_CHAR, ')')
 			operation = self.statement_block()
 			return WhileLoop(condition, operation)
 		return self.for_statement()
@@ -412,7 +416,7 @@ class Parser:
 	def statement(self):
 		return self.while_statement()
 
-	def statement_list(self):
+	def statement_list(self, **kwargs):
 		s = self.statement()
 		result = [s] if s is not None else []
 		while self.token.value != '}' and self.token.type != EOF:
@@ -420,10 +424,9 @@ class Parser:
 			s = self.statement()
 			if s is not None:
 				result.append(s)
-		return ScopedStatements(result)
+		return ScopedStatements(result) if kwargs.get("scoped", False) else StatementList(result)
 
-	def statement_block(self):
-#		print(self.pos)
+	def statement_block(self, **kwargs):
 		if self.token.value != '{':
 			return self.statement()
 		self.eat(GROUP_CHAR)

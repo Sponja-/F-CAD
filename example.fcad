@@ -35,3 +35,15 @@ func(x) = {
 
 print(func(1));
 print(func(5));
+
+for(i in [1..10]) {
+	a = 2 * i;
+	print(a);
+};
+
+x = input();
+
+while(x > 0) {
+	x = x / 2;
+	print(x);
+};
