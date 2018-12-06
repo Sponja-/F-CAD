@@ -31,7 +31,6 @@ class Variable:
 	@value.setter
 	def value(self, val):
 		Variable.table[self.symbol] = val
-		pprint({k: str(v) for k, v in Variable.table.items()})
 
 	def __str__(self):
 		return self.symbol
@@ -43,7 +42,6 @@ class Operation:
 		self.operands = operands
 
 	def eval(self, **locals):
-		print(*(str(operand) for operand in self.operands))
 		return self.operation(*(op.eval(**locals) for op in self.operands))
 
 	def __str__(self):

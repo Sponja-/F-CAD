@@ -29,11 +29,9 @@ reverse(list) = | len(list) <= 1 ? [list[0]]
 print(reverse([1, 2, 3, 4]));
 
 func(x) = {
-	print(2 * x);
 	xx = 2 * x;
-	print(xx);
 	return xx + 1;
 };
 
 print(func(1));
-print(func(2));
+print(func(5));

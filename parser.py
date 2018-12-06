@@ -423,7 +423,7 @@ class Parser:
 		return ScopedStatements(result)
 
 	def statement_block(self):
-		print(self.pos)
+#		print(self.pos)
 		if self.token.value != '{':
 			return self.statement()
 		self.eat(GROUP_CHAR)

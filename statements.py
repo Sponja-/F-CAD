@@ -55,11 +55,12 @@ class Assignment(Statement):
 		return f"{str(self.var)} := {self.value}"
 
 class AbsoluteAssignment(Assignment):
-	def __init__(self, var, value):
-		super().__init__(var, value)
+	def __init__(self, var, expr):
+		self.expr = expr
+		super().__init__(var, None)
 
 	def exec(self, **locals):
-		val = self.value.eval(**locals)
+		val = self.expr.eval(**locals)
 		self.value = classes_for_values[type(val)](val)
 		super().exec(**locals)
 		return self.value.eval(**locals)
