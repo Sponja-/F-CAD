@@ -1,6 +1,8 @@
 from elements import Operation, Variable, type_functions
 from matplotlib import pyplot as plt
 from json import dumps, loads
+from importlib import import_module
+from types import FunctionType
 
 """
 
@@ -90,3 +92,16 @@ class RunPython(Operation):
 				if type(value) in type_functions:
 					Variable.table[name] = type_functions[type(value)](value)
 		super().__init__(operation, code)
+
+class ImportPythonModule(Operation):
+	def __init__(self, module_name):
+		def operation(x):
+			module = import_module(x.rsplit('.', 1)[0])
+			for var_name in dir(module):
+				if not (var_name.startswith("__") and var_name.endswith("__")):
+					value = getattr(module, var_name) 
+					if type(value) in type_functions:
+						Variable.table[var_name] = type_functions[type(value)](value)
+					elif type(value) is FunctionType:
+						Variable.table[var_name] = Function([], ImportedOperation(value), "args")
+		super().__init__(operation, module_name)

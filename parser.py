@@ -11,8 +11,6 @@ from special_functions import *
 from iterable import *
 from strings import *
 from argparse import ArgumentParser
-from importlib import import_module
-from types import FunctionType
 
 class Import(Operation):
 	def __init__(self, file_path):
@@ -24,19 +22,6 @@ class Import(Operation):
 class ImportedOperation(Operation):
 	def eval(self, **locals):
 		return self.operation(*locals["args"].eval(**locals))
-
-class ImportPythonModule(Operation):
-	def __init__(self, module_name):
-		def operation(x):
-			module = import_module(x.rsplit('.', 1)[0])
-			for var_name in dir(module):
-				if not (var_name.startswith("__") and var_name.endswith("__")):
-					value = getattr(module, var_name) 
-					if type(value) in type_functions:
-						Variable.table[var_name] = type_functions[type(value)](value)
-					elif type(value) is FunctionType:
-						Variable.table[var_name] = Function([], ImportedOperation(value), "args")
-		super().__init__(operation, module_name)
 
 power_operators = {
 	'^': Exponentiation,
