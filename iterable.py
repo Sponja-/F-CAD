@@ -1,4 +1,4 @@
-from elements import Constant, Operation, FunctionCall, classes_for_values
+from elements import Constant, Operation, FunctionCall, type_functions
 from constants import one
 from arithmetic import Addition
 from numpy import array, arange, sum, append, ndarray
@@ -10,7 +10,7 @@ class Subscript(Operation):
 			if type(x) is ndarray:
 				return x[tuple(int(elem) for elem in y)]
 			if hasattr(x, "__getitem__"):
-				return x[int(y[0])]
+				return x.__getitem__(*(int(elem) for elem in y))
 			iterable = iter(x)
 			for i, n in enumerate(iterable):
 				if i == y:
@@ -60,7 +60,7 @@ class ListComprehension(Operation):
 			result = []
 			new_locals = locals.copy()
 			for x in list:
-				new_locals[term_symbol] = classes_for_values[type(x)](x)
+				new_locals[term_symbol] = type_functions[type(x)](x)
 				if conditions.eval(**new_locals):
 					result.append(term.eval(**new_locals))
 			return array(result)

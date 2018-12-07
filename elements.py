@@ -1,6 +1,7 @@
 from itertools import zip_longest
 from numpy import float64
 from pprint import pprint
+from numpy import array, ndarray
 
 class Constant:
 	def eval(self, **locals):
@@ -55,38 +56,54 @@ class BinaryOperation(Operation):
 		return f"({str(self.operands[0])} {self.symbol} {str(self.operands[1])})"
 
 class func:
-	def __init__(self, var_symbols, operation):
+	def __init__(self, var_symbols, var_arg_symbol, operation):
 		self.symbols = var_symbols
+		self.var_arg_symbol = var_arg_symbol
 		self.operation = operation
 
 	def __str__(self):
 		return str(self.operation)
 
 class Function(Constant):
-	def __init__(self, var_symbols, operation):
-		self.value = func(var_symbols, operation)
+	def __init__(self, var_symbols, operation, var_arg_symbol=None):
+		self.value = func(var_symbols, var_arg_symbol, operation)
 
-classes_for_values = {
+class Vector(Operation):
+	def __init__(self, *elems):
+		def operation(*x):
+			return array(x)
+		super().__init__(operation, *elems)
+
+type_functions = {
 	int: Number,
 	float: Number,
 	float64: Number,
 	bool: Number,
-	func: lambda x: Function(x.symbols, x.operation)
+	func: lambda x: Function(x.symbols, x.operation, x.var_arg_symbol),
+	ndarray: lambda x: Vector(*(type_functions[type(elem)](elem) for elem in x))
 }
+
+type_functions[list] = type_functions[ndarray]
 
 class ret_val:
 	def __init__(self, value):
 		self.value = value
 
-classes_for_values[ret_val] = lambda x: classes_for_values[ret_val.value]
+type_functions[ret_val] = lambda x: type_functions[x.value]
 
 class FunctionCall(Operation):
 	def __init__(self, function, *args):
 		def operation(x, locals, *y):
 			new_locals = locals.copy()
-			for symbol, expr in zip_longest(x.symbols, y, fillvalue=None):
+			for symbol, expr in zip(x.symbols, y):
 				value = expr.eval(**new_locals)
-				new_locals[symbol] = classes_for_values[type(value)](value)
+				new_locals[symbol] = type_functions[type(value)](value)
+			if x.var_arg_symbol is not None:
+				new_locals[x.var_arg_symbol] = []
+				for expr in y[len(x.symbols):]:
+					value = expr.eval(**new_locals)
+					new_locals[x.var_arg_symbol].append(type_functions[type(value)](value))
+				new_locals[x.var_arg_symbol] = Vector(*new_locals[x.var_arg_symbol])
 			ret = x.operation.eval(**new_locals)
 			return ret.value if type(ret) is ret_val else ret
 		super().__init__(operation, function, *args)

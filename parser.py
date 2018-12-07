@@ -5,14 +5,38 @@ from algebra import *
 from trigonometry import *
 from logic import *
 from set_theory import *
-from simplify import *
-from calculus import *
 from statements import *
 from flow_control import *
 from special_functions import *
 from iterable import *
 from strings import *
 from argparse import ArgumentParser
+from importlib import import_module
+from types import FunctionType
+
+class Import(Operation):
+	def __init__(self, file_path):
+		def operation(x):
+			with open(x, 'r') as source_file:
+				parse_string(source_file.read())
+		super().__init__(operation, file_path)
+
+class ImportedOperation(Operation):
+	def eval(self, **locals):
+		return self.operation(*locals["args"].eval(**locals))
+
+class ImportPythonModule(Operation):
+	def __init__(self, module_name):
+		def operation(x):
+			module = import_module(x.rsplit('.', 1)[0])
+			for var_name in dir(module):
+				if not (var_name.startswith("__") and var_name.endswith("__")):
+					value = getattr(module, var_name) 
+					if type(value) in type_functions:
+						Variable.table[var_name] = type_functions[type(value)](value)
+					elif type(value) is FunctionType:
+						Variable.table[var_name] = Function([], ImportedOperation(value), "args")
+		super().__init__(operation, module_name)
 
 power_operators = {
 	'^': Exponentiation,
@@ -23,7 +47,6 @@ power_operators = {
 }
 
 factor_operators = {
-	'.': DotProduct,
 	'*': Multiplication,
 	'/': Division,
 	'%': Modulo
@@ -69,7 +92,6 @@ argument_list_operators = {
 	'arctan': ArcTangent,
 	'any': Any,
 	'all': All,
-	'diff': Differentiate,
 	'print': Print,
 	'graph': Graph,
 	'scatter': Scatter,
@@ -84,7 +106,15 @@ argument_list_operators = {
 	'ceil': Ceil,
 	'trunc': Truncate,
 	'ord': CharToCode,
-	'chr': CodeToChar
+	'chr': CodeToChar,
+	'number': ToNumber,
+	'read': Read,
+	'write': Write,
+	'encode': JsonEncode,
+	'decode': JsonDecode,
+	'import': Import,
+	'import_python': ImportPythonModule,
+	'run_python': RunPython
 }
 
 closing = {
@@ -97,6 +127,7 @@ class Parser:
 	def __init__(self, tok_gen):
 		self.tokens = list(tok_gen.tokens())
 		self.pos = 0
+		self.show_errors = True
 
 	@property
 	def token(self):
@@ -113,7 +144,8 @@ class Parser:
 		self.error()
 	
 	def error(self, message=""):
-		print(f"Error on {self.token} at pos {self.pos}:\n\t{message}")
+		if self.show_errors:
+			print(f"Error on {self.token} at pos {self.pos}:\n\t{message}")
 		raise SyntaxError
 
 	def eat(self, token_type, value=None):
@@ -359,7 +391,9 @@ class Parser:
 			self.eat(GROUP_CHAR, '(')
 			
 			try:
+				self.show_errors = False
 				arguments = self.name_list()
+				self.show_errors = True
 			except:
 				self.pos = start_pos
 				return self.where_expr()
@@ -374,7 +408,9 @@ class Parser:
 
 		
 		try:
+			self.show_errors = False
 			symbols = self.name_list()
+			self.show_errors = True
 		except:
 			self.pos = start_pos
 			return self.where_expr()
@@ -445,6 +481,8 @@ class Parser:
 		self.eat(GROUP_CHAR, '}')
 		return result
 
+def parse_string(s):
+	Parser(Tokenizer(s.strip())).statement_list().eval()
 
 debug = False
 absolute_assignment_default = True
@@ -457,7 +495,7 @@ if __name__ == '__main__':
 
 	if args.file is not None:
 		with open(args.file, 'r') as file:
-			Parser(Tokenizer(file.read().strip())).statement_list().eval()
+			parse_string(file.read())
 	else:
 		while True:
 			result = Parser(Tokenizer(input('> '))).expr()

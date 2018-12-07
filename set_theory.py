@@ -1,4 +1,4 @@
-from elements import Constant, Operation, BinaryOperation, classes_for_values
+from elements import Constant, Operation, BinaryOperation, type_functions
 from itertools import product, permutations, combinations
 from numpy import array
 
@@ -11,7 +11,7 @@ class Set(Operation):
 	def __str__(self):
 		return '{' + ', '.join(str(operand) for operand in self.operands) + '}'
 
-classes_for_values[set] = Set
+type_functions[set] = Set
 
 class Union(BinaryOperation):
 	def __init__(self, set_1, set_2):

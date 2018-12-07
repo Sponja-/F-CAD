@@ -1,15 +1,5 @@
-from elements import BinaryOperation, Operation, Constant, classes_for_values
+from elements import BinaryOperation, Operation, Constant, type_functions
 from constants import one
-from numpy import array, ndarray
-
-class Vector(Operation):
-	def __init__(self, *elems):
-		def operation(*x):
-			return array(x)
-		super().__init__(operation, *elems)
-
-classes_for_values[ndarray] = lambda x: Vector(*(classes_for_values[type(elem)](elem) for elem in x))
-classes_for_values[list] = classes_for_values[ndarray]
 
 class DotProduct(BinaryOperation):
 	def __init__(self, vector_1, vector_2):

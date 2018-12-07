@@ -1,4 +1,4 @@
-from elements import Variable, classes_for_values, ret_val
+from elements import Variable, type_functions, ret_val
 
 class Statement:
 	def exec(self, **locals):
@@ -35,9 +35,11 @@ class ScopedStatements(StatementList):
 		self.statements = statements
 
 	def exec(self, **locals):
-		old = Variable.table.copy()
+		global_vars = Variable.table.keys()
 		ret_val = super().exec(**locals)
-		Variable.table = old
+		for var in Variable.table:
+			if var not in global_vars:
+				del Variable.table[var]
 		return ret_val
 
 class Assignment(Statement):
@@ -61,6 +63,6 @@ class AbsoluteAssignment(Assignment):
 
 	def exec(self, **locals):
 		val = self.expr.eval(**locals)
-		self.value = classes_for_values[type(val)](val)
+		self.value = type_functions[type(val)](val)
 		super().exec(**locals)
 		return self.value.eval(**locals)

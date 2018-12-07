@@ -58,7 +58,6 @@ operator_chars = [
 	'/',
 	'^',
 	'%',
-	'.',
 	'<',
 	'>',
 	'=',
@@ -86,8 +85,6 @@ named = [
 	'abs',
 	'row',
 	'col',
-	'P',
-	'C',
 	'sin',
 	'cos',
 	'tan',
@@ -100,7 +97,6 @@ named = [
 	'xor',
 	'any',
 	'all',
-	'diff',
 	'print',
 	'graph',
 	'scatter',
@@ -117,7 +113,15 @@ named = [
 	'ceil',
 	'trunc',
 	'ord',
-	'chr'
+	'chr',
+	'number',
+	'read',
+	'write',
+	'encode',
+	'decode',
+	'import',
+	'import_python',
+	'run_python'
 ]
 
 group_chars = [

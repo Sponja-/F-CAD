@@ -1,4 +1,4 @@
-from elements import Number, Operation, Constant, classes_for_values
+from elements import Number, Operation, Constant, type_functions
 from arithmetic import *
 from constants import zero, one
 from set_theory import Set
@@ -88,7 +88,7 @@ def simplify(op):
 	if isinstance(op, Operation):
 		if all([isinstance(x, Constant) for x in op.operands]):
 			result = op.operation(*[x.value for x in op.operands])
-			return classes_for_values[type(result)](result)
+			return type_functions[type(result)](result)
 		op.operands = [simplify(child) for child in op.operands]
 		if type(op) in operation_simplifications:
 			return operation_simplifications[type(op)](op)

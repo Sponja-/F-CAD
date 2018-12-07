@@ -1,6 +1,12 @@
-from elements import Operation
-from elements import Variable
+from elements import Operation, Variable, type_functions
 from matplotlib import pyplot as plt
+from json import dumps, loads
+
+"""
+
+	I/O
+
+"""
 
 class Print(Operation):
 	def __init__(self, operand):
@@ -37,3 +43,50 @@ class Show(Operation):
 	def eval(self, **locals):
 		self.operation(self.operands[0])
 		return self.operands[0].eval(**locals)
+
+
+"""
+
+	OS
+
+"""
+
+class Read(Operation):
+	def __init__(self, file_path):
+		def operation(x):
+			with open(x, 'r') as file:
+				return file.read()
+		super().__init__(operation, file_path)
+
+class Write(Operation):
+	def __init__(self, file_path, contents):
+		def operation(x, y):
+			with open(x, 'w') as file:
+				file.write(y)
+		super().__init__(operation, file_path, contents)
+
+class JsonEncode(Operation):
+	def __init__(self, obj):
+		operation = dumps
+		super().__init__(operation, obj)
+
+class JsonDecode(Operation):
+	def __init__(self, s):
+		operation = loads
+		super().__init__(operation, s)
+
+"""
+
+	Language Integration
+
+"""
+
+class RunPython(Operation):
+	def __init__(self, code):
+		def operation(x):
+			l = {}
+			exec(x, {}, l)
+			for name, value in l.items():
+				if type(value) in type_functions:
+					Variable.table[name] = type_functions[type(value)](value)
+		super().__init__(operation, code)
