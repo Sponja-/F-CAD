@@ -12,6 +12,7 @@ QUESTION = 7
 ASSIGNMENT = 8
 RANGE = 9
 KEYWORD = 10
+STRING = 11
 
 names = {
 	EOF: "EOF",
@@ -25,7 +26,8 @@ names = {
 	QUESTION: "QUESTION",
 	ASSIGNMENT: "ASSIGNMENT",
 	RANGE: "RANGE",
-	KEYWORD: "KEYWORD"
+	KEYWORD: "KEYWORD",
+	STRING: "STRING"
 }
 
 special_chars = {
@@ -109,7 +111,13 @@ named = [
 	'intersection',
 	'len',
 	'slice',
-	'input'
+	'input',
+	'shape',
+	'floor',
+	'ceil',
+	'trunc',
+	'ord',
+	'chr'
 ]
 
 group_chars = [
@@ -117,6 +125,19 @@ group_chars = [
 	'[', ']',
 	'{', '}'
 ]
+
+escape_chars = {
+	'\\': '\\',
+	'\'': '\'',
+	'\"': '\"',
+	'a': '\a',
+	'b': '\b',
+	'f': '\f',
+	'n': '\n',
+	'r': '\r',
+	't': '\t',
+	'v': '\v'
+}
 
 class Tokenizer:
 	def __init__(self, text):
@@ -138,12 +159,30 @@ class Tokenizer:
 		while self.char != '\0' and self.char.isspace():
 			self.advance()
 
+	def get_string(self):
+		result = ""
+		self.advance()
+
+		while self.char != '"':
+			if self.char == '\\':
+				self.advance()
+				result += escape_chars[self.char]
+			else:
+				result += self.char
+			self.advance()
+
+		self.advance()
+		return result
+
 	def get_next_token(self):
 		while self.char != '\0':
 			
 			if self.char.isspace():
 				self.skip_whitespace()
 				continue
+
+			if self.char == '"':
+				return Token(STRING, self.get_string())
 
 			number_match = number_regex.match(self.text[self.pos:])
 			if number_match is not None:

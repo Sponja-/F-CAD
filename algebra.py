@@ -33,3 +33,8 @@ class Column(BinaryOperation):
 	def __init__(self, matrix, index):
 		operation = lambda x, y: x[:, int(y)]
 		super().__init__(operation, matrix, index, symbol="col")
+
+class Shape(Operation):
+	def __init__(self, matrix):
+		operation = lambda x: array(x.shape)
+		super().__init__(operation, matrix, symbol='shape')

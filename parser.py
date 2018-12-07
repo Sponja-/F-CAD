@@ -11,6 +11,7 @@ from statements import *
 from flow_control import *
 from special_functions import *
 from iterable import *
+from strings import *
 from argparse import ArgumentParser
 
 power_operators = {
@@ -77,7 +78,13 @@ argument_list_operators = {
 	'tail': Tail,
 	'len': Len,
 	'slice': Slice,
-	'input': Input
+	'input': Input,
+	'shape': Shape,
+	'floor': Floor,
+	'ceil': Ceil,
+	'trunc': Truncate,
+	'ord': CharToCode,
+	'chr': CodeToChar
 }
 
 closing = {
@@ -229,6 +236,10 @@ class Parser:
 		if token.type == NAME:
 			self.eat(NAME)
 			return Variable(token.value)
+
+		if token.type == STRING:
+			self.eat(STRING)
+			return String(token.value)
 
 		if token.type == GROUP_CHAR:
 			if token.value == '(':

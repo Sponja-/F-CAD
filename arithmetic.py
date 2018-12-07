@@ -1,5 +1,6 @@
 from elements import Operation, BinaryOperation
 from constants import e, ten, two
+from numpy import floor, ceil, trunc
 
 class Addition(BinaryOperation):
 	def __init__(self, number_1, number_2):
@@ -87,3 +88,17 @@ class AbsoluteValue(Operation):
 	def __init__(self, number):
 		operation = lambda x: (x ** 2) ** 0.5 
 		super().__init__(operation, number, symbol='abs')
+
+class Floor(Operation):
+	def __init__(self, number):
+		operation = lambda x: int(floor(x))
+		super().__init__(operation, number)
+
+class Ceil(Operation):
+	def __init__(self, number):
+		operation = lambda x: int(ceil(x))
+		super().__init__(operation, number)
+
+class Truncate(Operation):
+	def __init__(self, number):
+		operation = lambda x: int(trunc(x))

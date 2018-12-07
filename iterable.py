@@ -10,7 +10,7 @@ class Subscript(Operation):
 			if type(x) is ndarray:
 				return x[tuple(int(elem) for elem in y)]
 			if hasattr(x, "__getitem__"):
-				return x[int(y)]
+				return x[int(y[0])]
 			iterable = iter(x)
 			for i, n in enumerate(iterable):
 				if i == y:
@@ -42,6 +42,8 @@ class Range(Operation):
 class AppendTo(Operation):
 	def __init__(self, vec, appended):
 		def operation(x, y):
+			if type(x) == type(y) == str:
+				return x + y
 			if not hasattr(y, "shape") or not hasattr(x, "shape"):
 				return append(x, y)
 			if len(x.shape) == len(y.shape):
