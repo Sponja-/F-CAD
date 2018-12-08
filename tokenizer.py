@@ -13,6 +13,7 @@ ASSIGNMENT = 8
 RANGE = 9
 KEYWORD = 10
 STRING = 11
+ELLIPSIS = 12
 
 names = {
 	EOF: "EOF",
@@ -27,7 +28,8 @@ names = {
 	ASSIGNMENT: "ASSIGNMENT",
 	RANGE: "RANGE",
 	KEYWORD: "KEYWORD",
-	STRING: "STRING"
+	STRING: "STRING",
+	ELLIPSIS: "ELLIPSIS"
 }
 
 special_chars = {
@@ -208,7 +210,11 @@ class Tokenizer:
 				self.advance(end - start)
 				return result
 
-			if self.char == '.' and self.next_char == '.':
+			if self.char == self.next_char == self.text[self.pos + 2] == '.':
+				self.advance(3)
+				return Token(ELLIPSIS, '...')
+
+			if self.char == self.next_char == '.':
 				self.advance(2)
 				return Token(RANGE, '..')
 

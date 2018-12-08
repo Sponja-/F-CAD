@@ -157,6 +157,7 @@ class Parser:
 	def expr_list(self):
 		if self.token.value in closing.values():
 			return []
+
 		result = [self.expr()]
 
 		while self.token.type == COMMA:
@@ -165,15 +166,26 @@ class Parser:
 
 		return result
 
-	def name_list(self):
-		if self.token.type != NAME:
+	def name_list(self, allow_ellipsis=False):
+		if self.token.type != NAME and self.token.type != ELLIPSIS:
 			return []
+
+		if allow_ellipsis and self.token.type == ELLIPSIS:
+				self.eat(ELLIPSIS)
+				value = (ELLIPSIS, self.token.value)
+				self.eat(NAME)
+				return [value]
 
 		result = [self.token.value]
 		self.eat(NAME)
 
 		while self.token.type == COMMA:
 			self.eat(COMMA)
+			if allow_ellipsis and self.token.type == ELLIPSIS:
+				self.eat(ELLIPSIS)
+				result.append((ELLIPSIS, self.token.value))
+				self.eat(NAME)
+				return result
 			result.append(self.token.value)
 			self.eat(NAME)
 
@@ -367,13 +379,13 @@ class Parser:
 			return self.where_expr()
 		
 		if self.next_token.value == '(':
-			symbol = self.token
+			symbol = self.token.value
 			self.eat(NAME)
 			self.eat(GROUP_CHAR, '(')
 			
 			try:
 				self.show_errors = False
-				arguments = self.name_list()
+				arguments = self.name_list(True)
 				self.show_errors = True
 			except:
 				self.pos = start_pos
@@ -382,7 +394,10 @@ class Parser:
 			if self.token.value == ')' and self.next_token.type == ASSIGNMENT:
 				self.eat(GROUP_CHAR, ')')
 				self.eat(ASSIGNMENT)
-				return assign(Variable(symbol.value), Function(arguments, self.statement_block(scoped = True)))
+				var_arg_symbol = None
+				if type(arguments[-1]) is tuple:
+					var_arg_symbol = arguments.pop()[1]
+				return assign(Variable(symbol), Function(arguments, self.statement_block(scoped = True), var_arg_symbol))
 			else:
 				self.pos = start_pos
 				return self.where_expr()
