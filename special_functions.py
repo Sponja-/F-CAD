@@ -1,4 +1,4 @@
-from elements import Operation, Variable, type_functions
+from elements import Operation, Variable, type_functions, Function
 from matplotlib import pyplot as plt
 from json import dumps, loads
 from importlib import import_module
@@ -92,6 +92,10 @@ class RunPython(Operation):
 				if type(value) in type_functions:
 					Variable.table[name] = type_functions[type(value)](value)
 		super().__init__(operation, code)
+
+class ImportedOperation(Operation):
+	def eval(self, **locals):
+		return self.operation(*locals["args"].eval(**locals))
 
 class ImportPythonModule(Operation):
 	def __init__(self, module_name):

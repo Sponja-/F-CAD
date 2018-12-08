@@ -19,10 +19,6 @@ class Import(Operation):
 				parse_string(source_file.read())
 		super().__init__(operation, file_path)
 
-class ImportedOperation(Operation):
-	def eval(self, **locals):
-		return self.operation(*locals["args"].eval(**locals))
-
 power_operators = {
 	'^': Exponentiation,
 	'row': Row,
