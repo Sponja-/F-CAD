@@ -3,3 +3,6 @@ def a(x):
 
 def b(x):
 	return x + 10
+
+def lower(s):
+	return s.lower()

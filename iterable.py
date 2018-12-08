@@ -30,11 +30,6 @@ class Subscript(Operation):
 	def __str__(self):
 		return f"{str(self.operands[0])}[{str(self.operands[1])}]"
 
-class Len(Operation):
-	def __init__(self, arr):
-		operation = len
-		super().__init__(operation, arr)
-
 class Range(Operation):
 	def __init__(self, start, end=None, second=None):
 		if second is None:
@@ -78,35 +73,3 @@ class ListComprehension(Operation):
 
 	def eval(self, **locals):
 		return self.operation(*self.operands[:3], self.operands[3].eval(**locals), locals)
-
-
-class Take(Operation):
-	def __init__(self, arr, amount=one):
-		operation = lambda x, y: array(list(islice(x, int(y))))
-		super().__init__(operation, arr, amount)
-
-def tail(arr, amount):
-	iterable = iter(arr)
-	index = 0
-	for x in iterable:
-		if index >= amount:
-			yield x
-			break
-		index += 1
-	for x in iterable:
-		yield x
-
-class Tail(Operation):
-	def __init__(self, arr, amount=one):
-		operation = lambda x, y: array(list(tail(x, int(y))))
-		super().__init__(operation, arr, amount)
-
-class Slice(Operation):
-	def __init__(self, arr, start, end, step=one):
-		operation = lambda x, y, z, w: array(list(islice(x, int(y), int(z), int(w))))
-		super().__init__(operation, arr, start, end, step)
-
-class SumElements(Operation):
-	def __init__(self, terms):
-		operation = sum
-		super().__init__(operation, terms, symbol="sum")

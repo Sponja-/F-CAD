@@ -1,7 +1,7 @@
 from itertools import zip_longest
 from numpy import float64
 from pprint import pprint
-from numpy import array, ndarray
+from numpy import array, ndarray, str_
 
 class Constant:
 	def eval(self, **locals):
@@ -61,6 +61,10 @@ class BinaryOperation(Operation):
 	def __str__(self):
 		return f"({str(self.operands[0])} {self.symbol} {str(self.operands[1])})"
 
+class String(Constant):
+	def __init__(self, value):
+		self.value = value
+
 class func:
 	def __init__(self, var_symbols, var_arg_symbol, operation):
 		self.symbols = var_symbols
@@ -85,7 +89,9 @@ type_functions = {
 	float: Number,
 	float64: Number,
 	bool: Number,
-	func: lambda x: Function(x.symbols, x.operation, x.var_arg_symbol)
+	func: lambda x: Function(x.symbols, x.operation, x.var_arg_symbol),
+	str: String,
+	str_: String
 }
 
 def convert_type(value):
@@ -93,6 +99,7 @@ def convert_type(value):
 
 type_functions[ndarray] = lambda x: Vector(*(convert_type(elem) for elem in x))
 type_functions[list] = type_functions[ndarray]
+type_functions[tuple] = type_functions[ndarray]
 
 class ret_val:
 	def __init__(self, value):

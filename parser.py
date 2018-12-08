@@ -2,29 +2,28 @@ from tokenizer import *
 from elements import *
 from arithmetic import *
 from algebra import *
-from trigonometry import *
 from logic import *
 from set_theory import *
 from statements import *
 from flow_control import *
 from special_functions import *
 from iterable import *
-from strings import *
 from argparse import ArgumentParser
+from pprint import pprint
 
 class Import(Operation):
 	def __init__(self, file_path):
 		def operation(x):
-			with open(x, 'r') as source_file:
-				parse_string(source_file.read())
+			try:
+				with open(x, 'r') as source_file:
+					parse_string(source_file.read())
+			except FileNotFoundError:
+				ImportPythonModule(String(x)).eval()
+
 		super().__init__(operation, file_path)
 
 power_operators = {
-	'^': Exponentiation,
-	'row': Row,
-	'col': Column,
-	'P': Permutations,
-	'C': Combinations
+	'^': Exponentiation
 }
 
 factor_operators = {
@@ -58,44 +57,9 @@ logic_operators = {
 }
 
 argument_list_operators = {
-	'sqrt': SquareRoot,
-	'root': NthRoot,
-	'log': Logarithm,
-	'ln': LogarithmBaseE,
-	'lg': LogarithmBase2,
-	'inv': Inverse,
-	'abs': AbsoluteValue,
-	'sin': Sine,
-	'cos': Cosine,
-	'tan': Tangent,
-	'arcsin': ArcSine,
-	'arccos': ArcCosine,
-	'arctan': ArcTangent,
-	'any': Any,
-	'all': All,
-	'print': Print,
-	'graph': Graph,
-	'scatter': Scatter,
 	'show': Show,
-	'take': Take,
-	'tail': Tail,
-	'len': Len,
-	'slice': Slice,
-	'input': Input,
-	'shape': Shape,
-	'floor': Floor,
-	'ceil': Ceil,
-	'trunc': Truncate,
-	'ord': CharToCode,
-	'chr': CodeToChar,
-	'number': ToNumber,
-	'read': Read,
-	'write': Write,
-	'encode': JsonEncode,
-	'decode': JsonDecode,
 	'import': Import,
-	'import_python': ImportPythonModule,
-	'run_python': RunPython
+	'python': RunPython
 }
 
 closing = {
@@ -105,7 +69,7 @@ closing = {
 }
 
 
-debug = True
+debug = False
 absolute_assignment_default = True
 
 class Parser:
@@ -115,6 +79,7 @@ class Parser:
 		self.tokens = list(tok_gen.tokens())
 		self.pos = 0
 		self.show_errors = True
+		self.expr_count = 0
 
 	@property
 	def token(self):
@@ -391,6 +356,9 @@ class Parser:
 		return result
 
 	def expr(self):
+		if debug:
+			self.expr_count += 1
+			print(self.expr_count)
 		return self.where_expr()
 
 	def assignment_statement(self, **kwargs):
@@ -483,6 +451,7 @@ def parse_string(s):
 
 
 if __name__ == '__main__':
+	Import(String("default_import")).eval()
 	parser = ArgumentParser(description="Interprets a file, or works as a REPL if none is provided")
 	parser.add_argument('file', type=str, help='File to interpret', nargs='?')
 

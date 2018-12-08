@@ -48,10 +48,10 @@ while(x > 0) {
 	print(x);
 }
 
-run_python("x = 10 ** 2");
+python("x = 10 ** 2");
 print(x);
 
-import_python("example_functions");
+import("example_functions");
 print(a(20));
 print(b(10));
 
@@ -78,3 +78,5 @@ arr[0][1] = 20;
 print(arr);
 arr[0] = [1, 2, 3];
 print(arr);
+
+print(lower("HELLO WORLD"));
