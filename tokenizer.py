@@ -74,7 +74,8 @@ keywords = [
 	'otherwise',
 	'where',
 	'return',
-	'while'
+	'while',
+	'function'
 ]
 
 named = [

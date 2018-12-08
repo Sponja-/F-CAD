@@ -104,7 +104,13 @@ closing = {
 	'{': '}'
 }
 
+
+debug = False
+absolute_assignment_default = True
+
 class Parser:
+	assign = AbsoluteAssignment if absolute_assignment_default else Assignment
+
 	def __init__(self, tok_gen):
 		self.tokens = list(tok_gen.tokens())
 		self.pos = 0
@@ -376,76 +382,41 @@ class Parser:
 				assignments = {}
 				while self.token.type == SEPARATOR:
 					self.eat(SEPARATOR)
-					assignment = self.assignment_expr(absolute_assignment=False)
+					assignment = self.assignment_statement(absolute_assignment=False)
 					assignments[assignment.var.symbol] = assignment.value
 			else:
-				assignment = self.assignment_expr(absolute_assignment=False)
+				assignment = self.assignment_statement(absolute_assignment=False)
 				assignments = {assignment.var.symbol: assignment.value}
 			return Where(result, assignments)
 		return result
 
-	def assignment_expr(self, **kwargs):
+	def expr(self):
+		return self.where_expr()
+
+	def assignment_statement(self, **kwargs):
 		assign = AbsoluteAssignment if kwargs.get("absolute_assignment", absolute_assignment_default) else Assignment
 		start_pos = self.pos
 
-		if self.token.type != NAME:
-			return self.where_expr()
-		
-		if self.next_token.value == '(':
-			symbol = self.token.value
-			self.eat(NAME)
-			self.eat(GROUP_CHAR, '(')
-			
-			try:
-				self.show_errors = False
-				arguments = self.name_list(True)
-				self.show_errors = True
-			except:
-				self.pos = start_pos
-				return self.where_expr()
-			
-			if self.token.value == ')' and self.next_token.type == ASSIGNMENT:
-				self.eat(GROUP_CHAR, ')')
-				self.eat(ASSIGNMENT)
-				var_arg_symbol = None
-				if type(arguments[-1]) is tuple:
-					var_arg_symbol = arguments.pop()[1]
-				return assign(Variable(symbol), Function(arguments, self.statement_block(scoped = True), var_arg_symbol))
-			else:
-				self.pos = start_pos
-				return self.where_expr()
-
-		
-		try:
-			self.show_errors = False
-			symbols = self.name_list()
-			self.show_errors = True
-		except:
-			self.pos = start_pos
-			return self.where_expr()
-
+		vars = self.expr_list()
 		if self.token.type == ASSIGNMENT:
 			self.eat(ASSIGNMENT)
-			result = []
 			exprs = self.expr_list()
-			assert(len(symbols) == len(exprs))
-			for symbol, expr in zip(symbols, exprs):
-				result.append(assign(Variable(symbol), expr))
+			assert(len(vars) == len(exprs))
+			result = []
+			for var, expr in zip(vars, exprs):
+				result.append(assign(var, expr))
 			if len(result) == 1:
 				return result[0]
 			return StatementList(result)
 		else:
 			self.pos = start_pos
-			return self.where_expr()
-
-	def expr(self):
-		return self.assignment_expr()
+			return self.expr()
 
 	def return_statement(self):
 		if self.token.value == 'return':
 			self.eat(KEYWORD)
-			return Return(self.expr())
-		return self.expr()
+			return Return(self.assignment_statement())
+		return self.assignment_statement()
 
 	def for_statement(self):
 		if self.token.value == 'for':
@@ -469,8 +440,23 @@ class Parser:
 			return WhileLoop(condition, operation)
 		return self.for_statement()
 
-	def statement(self):
+	def function_definition(self):
+		if self.token.value == 'function':
+			self.eat(KEYWORD)
+			name = self.token.value
+			self.eat(NAME)
+			self.eat(GROUP_CHAR, '(')
+			args = self.name_list(True)
+			self.eat(GROUP_CHAR, ')')
+			var_arg_symbol = None
+			if type(args[-1]) == tuple and args[-1][0] == ELLIPSIS:
+				var_arg_symbol = args.pop()[1]
+			self.eat(ASSIGNMENT)
+			return Parser.assign(Variable(name), Function(args, self.statement_block(scoped=True), var_arg_symbol))
 		return self.while_statement()
+
+	def statement(self):
+		return self.function_definition()
 
 	def statement_list(self, **kwargs):
 		s = self.statement()
@@ -494,8 +480,6 @@ class Parser:
 def parse_string(s):
 	Parser(Tokenizer(s.strip())).statement_list().eval()
 
-debug = False
-absolute_assignment_default = True
 
 if __name__ == '__main__':
 	parser = ArgumentParser(description="Interprets a file, or works as a REPL if none is provided")
