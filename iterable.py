@@ -3,6 +3,7 @@ from constants import one
 from arithmetic import Addition
 from numpy import array, arange, sum, append, ndarray
 from itertools import count, islice
+from functools import reduce
 
 class Subscript(Operation):
 	def __init__(self, vector, *indeces):
@@ -17,6 +18,15 @@ class Subscript(Operation):
 					return n
 		super().__init__(operation, vector, *indeces)
 
+	def get_value(self, **locals):
+		arr = self.operands[0].value
+		return reduce(lambda x, y: x.operands[int(y.eval(**locals))], self.operands[1:], arr)
+
+	def set_value(self, value, **locals):
+		arr = self.operands[0].get_value(**locals)
+		last_list = reduce(lambda x, y: x.operands[int(y.eval(**locals))], self.operands[1:-1], arr)
+		last_list.operands[int(self.operands[-1].eval(**locals))] = value
+	
 	def __str__(self):
 		return f"{str(self.operands[0])}[{str(self.operands[1])}]"
 

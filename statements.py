@@ -51,7 +51,7 @@ class Assignment(Statement):
 		if self.var.symbol in locals:
 			locals[var.symbol] = self.value
 		else:
-			self.var.value = self.value
+			self.var.set_value(self.value, **locals)
 
 	def __str__(self):
 		return f"{str(self.var)} := {self.value}"

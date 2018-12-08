@@ -27,11 +27,17 @@ class Variable:
 
 	@property
 	def value(self):
-		return Variable.table[self.symbol]
+		return self.get_value()
 
 	@value.setter
 	def value(self, val):
-		Variable.table[self.symbol] = val
+		self.set_value(val)
+
+	def get_value(self, **locals):
+		return Variable.table[self.symbol]
+
+	def set_value(self, value, **locals):
+		Variable.table[self.symbol] = value
 
 	def __str__(self):
 		return self.symbol
@@ -40,7 +46,7 @@ class Operation:
 	def __init__(self, operation, *operands, **kwargs):
 		self.symbol = kwargs.get("symbol", self.__class__.__name__)
 		self.operation = operation
-		self.operands = operands
+		self.operands = list(operands)
 
 	def eval(self, **locals):
 		return self.operation(*(op.eval(**locals) for op in self.operands))

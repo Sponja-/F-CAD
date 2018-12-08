@@ -105,7 +105,7 @@ closing = {
 }
 
 
-debug = False
+debug = True
 absolute_assignment_default = True
 
 class Parser:
@@ -466,6 +466,7 @@ class Parser:
 				self.eat(SEMICOLON)
 			s = self.statement()
 			if s is not None:
+				if debug: print(str(s))
 				result.append(s)
 		return ScopedStatements(result) if kwargs.get("scoped", False) else StatementList(result)
 
