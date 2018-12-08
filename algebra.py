@@ -1,4 +1,4 @@
-from elements import BinaryOperation, Operation, Constant, type_functions
+from elements import BinaryOperation, Operation, Constant
 from constants import one
 
 class DotProduct(BinaryOperation):

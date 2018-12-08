@@ -28,10 +28,10 @@ class ForLoop:
 		new_locals = locals.copy()
 		for value in self.range.eval(**locals):
 			if len(self.symbols) <= 1:
-				new_locals[self.symbols[0]] = type_functions[type(value)](value)
+				new_locals[self.symbols[0]] = convert_type(value)
 			else:
 				for symbol, val in zip(self.symbols, value):
-					new_locals[symbol] = type_functions[type(value)](value)
+					new_locals[symbol] = convert_type(value)
 			self.operation.eval(**new_locals)
 
 class WhileLoop:

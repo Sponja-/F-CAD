@@ -1,4 +1,4 @@
-from elements import Variable, type_functions, ret_val
+from elements import Variable, type_functions, ret_val, convert_type
 
 class Statement:
 	def exec(self, **locals):
@@ -62,7 +62,6 @@ class AbsoluteAssignment(Assignment):
 		super().__init__(var, None)
 
 	def exec(self, **locals):
-		val = self.expr.eval(**locals)
-		self.value = type_functions[type(val)](val)
+		self.value = convert_type(self.expr.eval(**locals))
 		super().exec(**locals)
 		return self.value.eval(**locals)

@@ -60,7 +60,7 @@ class ListComprehension(Operation):
 			result = []
 			new_locals = locals.copy()
 			for x in list:
-				new_locals[term_symbol] = type_functions[type(x)](x)
+				new_locals[term_symbol] = convert_type(x)
 				if conditions.eval(**new_locals):
 					result.append(term.eval(**new_locals))
 			return array(result)

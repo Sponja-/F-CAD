@@ -79,10 +79,13 @@ type_functions = {
 	float: Number,
 	float64: Number,
 	bool: Number,
-	func: lambda x: Function(x.symbols, x.operation, x.var_arg_symbol),
-	ndarray: lambda x: Vector(*(type_functions[type(elem)](elem) for elem in x))
+	func: lambda x: Function(x.symbols, x.operation, x.var_arg_symbol)
 }
 
+def convert_type(value):
+	return type_functions[type(value)](value)
+
+type_functions[ndarray] = lambda x: Vector(*(convert_type(elem) for elem in x))
 type_functions[list] = type_functions[ndarray]
 
 class ret_val:
@@ -91,18 +94,29 @@ class ret_val:
 
 type_functions[ret_val] = lambda x: type_functions[x.value]
 
+class expanded_vector:
+	def __init__(self, value):
+		self.value = value
+
+class ExpandVector(Operation):
+	def __init__(self, v):
+		operation = expanded_vector
+		super().__init__(operation, v)
+
 class FunctionCall(Operation):
 	def __init__(self, function, *args):
 		def operation(x, locals, *y):
 			new_locals = locals.copy()
+			for i, arg in enumerate(y):
+				value = arg.eval(**locals)
+				if type(arg) is ExpandVector:
+					y = y[:i] + tuple(convert_type(elem) for elem in arg.eval(**locals).value) + y[i + 1:]
 			for symbol, expr in zip(x.symbols, y):
-				value = expr.eval(**new_locals)
-				new_locals[symbol] = type_functions[type(value)](value)
+				new_locals[symbol] = convert_type(expr.eval(**new_locals))
 			if x.var_arg_symbol is not None:
 				new_locals[x.var_arg_symbol] = []
 				for expr in y[len(x.symbols):]:
-					value = expr.eval(**new_locals)
-					new_locals[x.var_arg_symbol].append(type_functions[type(value)](value))
+					new_locals[x.var_arg_symbol].append(convert_type(expr.eval(**new_locals)))
 				new_locals[x.var_arg_symbol] = Vector(*new_locals[x.var_arg_symbol])
 			ret = x.operation.eval(**new_locals)
 			return ret.value if type(ret) is ret_val else ret

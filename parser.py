@@ -123,6 +123,12 @@ class Parser:
 			return self.tokens[self.pos + 1]
 		self.pos -= 2
 		self.error()
+
+	@property
+	def prev_token(self):
+		if self.pos > 0:
+			return self.tokens[self.pos - 1]
+		self.error()
 	
 	def error(self, message=""):
 		if self.show_errors:
@@ -154,14 +160,21 @@ class Parser:
 				return self.pos + i + 1
 		self.error(f"Couldn't find closing '{value}'")
 
-	def expr_list(self):
+	def expr_list(self, allow_ellipsis=False):
 		if self.token.value in closing.values():
 			return []
 
-		result = [self.expr()]
+		if allow_ellipsis and self.token.type == ELLIPSIS:
+			self.eat(ELLIPSIS)
+			result = [ExpandVector(self.expr())]
+		else:
+			result = [self.expr()]
 
 		while self.token.type == COMMA:
 			self.eat(COMMA)
+			if allow_ellipsis and self.token.type == ELLIPSIS:
+				self.eat(ELLIPSIS)
+				result.append(ExpandVector(self.expr()))
 			result.append(self.expr())
 
 		return result
@@ -191,9 +204,9 @@ class Parser:
 
 		return result
 
-	def tuple_list(self):
+	def tuple_list(self, allow_ellipsis=False):
 		self.eat(GROUP_CHAR, '(')
-		result = self.expr_list()
+		result = self.expr_list(allow_ellipsis)
 		self.eat(GROUP_CHAR, ')')
 		return result
 
@@ -287,7 +300,7 @@ class Parser:
 		result = self.atom()
 		while self.token.value in closing.keys():
 			if self.token.value == '(':
-				arguments = self.tuple_list()
+				arguments = self.tuple_list(True)
 				result = FunctionCall(result, *arguments)
 			elif self.token.value == '[':
 				self.eat(GROUP_CHAR)
@@ -463,7 +476,8 @@ class Parser:
 		s = self.statement()
 		result = [s] if s is not None else []
 		while self.token.value != '}' and self.token.type != EOF:
-			self.eat(SEMICOLON)
+			if self.prev_token.value != '}':
+				self.eat(SEMICOLON)
 			s = self.statement()
 			if s is not None:
 				result.append(s)

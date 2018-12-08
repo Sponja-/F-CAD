@@ -1,4 +1,4 @@
-from elements import Operation, Variable, type_functions, Function
+from elements import Operation, Variable, Function, type_functions, convert_type
 from matplotlib import pyplot as plt
 from json import dumps, loads
 from importlib import import_module
@@ -90,7 +90,7 @@ class RunPython(Operation):
 			exec(x, {}, l)
 			for name, value in l.items():
 				if type(value) in type_functions:
-					Variable.table[name] = type_functions[type(value)](value)
+					Variable.table[name] = convert_type(value)
 		super().__init__(operation, code)
 
 class ImportedOperation(Operation):
@@ -105,7 +105,7 @@ class ImportPythonModule(Operation):
 				if not (var_name.startswith("__") and var_name.endswith("__")):
 					value = getattr(module, var_name) 
 					if type(value) in type_functions:
-						Variable.table[var_name] = type_functions[type(value)](value)
+						Variable.table[var_name] = convert_type(value)
 					elif type(value) is FunctionType:
 						Variable.table[var_name] = Function([], ImportedOperation(value), "args")
 		super().__init__(operation, module_name)
