@@ -14,6 +14,7 @@ RANGE = 9
 KEYWORD = 10
 STRING = 11
 ELLIPSIS = 12
+MEMBER_ACCESS = 13
 
 names = {
 	EOF: "EOF",
@@ -29,7 +30,8 @@ names = {
 	RANGE: "RANGE",
 	KEYWORD: "KEYWORD",
 	STRING: "STRING",
-	ELLIPSIS: "ELLIPSIS"
+	ELLIPSIS: "ELLIPSIS",
+	MEMBER_ACCESS: "MEMBER_ACCESS"
 }
 
 special_chars = {
@@ -37,6 +39,7 @@ special_chars = {
 	';': SEMICOLON,
 	'|': SEPARATOR,
 	'?': QUESTION,
+	'.': MEMBER_ACCESS
 }
 
 class Token:
@@ -64,18 +67,22 @@ operator_chars = [
 	'>',
 	'=',
 	'!',
-	'.',
 	':'
 ]
 
 keywords = [
 	'for',
 	'in',
+	'if',
+	'else',
 	'otherwise',
 	'where',
 	'return',
 	'while',
-	'function'
+	'function',
+	'class',
+	'extends',
+	'new'
 ]
 
 named = [

@@ -8,6 +8,7 @@ from statements import *
 from flow_control import *
 from special_functions import *
 from iterable import *
+from objects import *
 from argparse import ArgumentParser
 from pprint import pprint
 
@@ -19,7 +20,6 @@ class Import(Operation):
 					parse_string(source_file.read())
 			except FileNotFoundError:
 				ImportPythonModule(String(x)).eval()
-
 		super().__init__(operation, file_path)
 
 power_operators = {
@@ -232,6 +232,13 @@ class Parser:
 	def atom(self):
 		token = self.token
 
+		if token.value == "new":
+			self.eat(KEYWORD)
+			class_name = self.token.value
+			self.eat(NAME)
+			args = self.tuple_list(True)
+			return CreateInstance(class_name, *args)
+
 		if token.type == NUMBER:
 			self.eat(NUMBER)
 			return Number(token.value)
@@ -269,15 +276,21 @@ class Parser:
 
 	def trailer_expr(self):
 		result = self.atom()
-		while self.token.value in closing.keys():
+		prev_result = None
+		while self.token.value in closing.keys() or self.token.type == MEMBER_ACCESS:
+			r = result
 			if self.token.value == '(':
 				arguments = self.tuple_list(True)
-				result = FunctionCall(result, *arguments)
+				result = MethodCall(prev_result, result, *arguments)
 			elif self.token.value == '[':
-				self.eat(GROUP_CHAR)
-				indeces = self.expr_list()
-				self.eat(GROUP_CHAR)
+				indeces = self.vector_constant()
 				result = Subscript(result, *indeces)
+			elif self.token.type == MEMBER_ACCESS:
+				self.eat(MEMBER_ACCESS)
+				member_name = self.token.value
+				self.eat(NAME)
+				result = AccessMember(result, member_name)
+			prev_result = r
 		return result
 
 	def binary_operator_list(self, operators, operand_function):
@@ -358,7 +371,6 @@ class Parser:
 	def expr(self):
 		if debug:
 			self.expr_count += 1
-			print(self.expr_count)
 		return self.where_expr()
 
 	def assignment_statement(self, **kwargs):
@@ -376,9 +388,7 @@ class Parser:
 			if len(result) == 1:
 				return result[0]
 			return StatementList(result)
-		else:
-			self.pos = start_pos
-			return self.expr()
+		return vars[0] if vars else None
 
 	def return_statement(self):
 		if self.token.value == 'return':
@@ -417,14 +427,33 @@ class Parser:
 			args = self.name_list(True)
 			self.eat(GROUP_CHAR, ')')
 			var_arg_symbol = None
-			if type(args[-1]) == tuple and args[-1][0] == ELLIPSIS:
+			if args and type(args[-1]) == tuple and args[-1][0] == ELLIPSIS:
 				var_arg_symbol = args.pop()[1]
-			self.eat(ASSIGNMENT)
+			if self.token.type == ASSIGNMENT:
+				self.eat(ASSIGNMENT)
 			return Parser.assign(Variable(name), Function(args, self.statement_block(scoped=True), var_arg_symbol))
 		return self.while_statement()
 
-	def statement(self):
+	def class_definition(self):
+		if self.token.value == 'class':
+			self.eat(KEYWORD)
+			name = self.token.value
+			self.eat(NAME)
+			parent_name = None
+			if self.token.value == 'extends':
+				self.eat(KEYWORD)
+				parent_name = self.token.value
+				self.eat(NAME)
+			definitions = self.statement_block(force_block=True)
+			attributes = {}
+			for assignment in definitions.statements:
+				assert(type(assignment) is Parser.assign)
+				attributes[assignment.var.symbol] = assignment.expr
+			return ClassDefinition(name, parent_name, attributes)
 		return self.function_definition()
+
+	def statement(self):
+		return self.class_definition()
 
 	def statement_list(self, **kwargs):
 		s = self.statement()
@@ -439,10 +468,10 @@ class Parser:
 		return ScopedStatements(result) if kwargs.get("scoped", False) else StatementList(result)
 
 	def statement_block(self, **kwargs):
-		if self.token.value != '{':
+		if self.token.value != '{' and not kwargs.get("force_block", False):
 			return self.statement()
 		self.eat(GROUP_CHAR)
-		result = self.statement_list()
+		result = self.statement_list(**kwargs)
 		self.eat(GROUP_CHAR, '}')
 		return result
 

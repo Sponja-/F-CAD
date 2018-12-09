@@ -48,13 +48,13 @@ class Assignment(Statement):
 		self.value = value
 
 	def exec(self, **locals):
-		if self.var.symbol in locals:
+		if hasattr(self.var, "symbol") and self.var.symbol in locals:
 			locals[var.symbol] = self.value
 		else:
 			self.var.set_value(self.value, **locals)
 
 	def __str__(self):
-		return f"{str(self.var)} := {self.value}"
+		return f"{str(self.var)} = {str(self.value)}"
 
 class AbsoluteAssignment(Assignment):
 	def __init__(self, var, expr):
@@ -65,3 +65,6 @@ class AbsoluteAssignment(Assignment):
 		self.value = convert_type(self.expr.eval(**locals))
 		super().exec(**locals)
 		return self.value.eval(**locals)
+
+	def __str__(self):
+		return f"{str(self.var)} = {str(self.expr)}"

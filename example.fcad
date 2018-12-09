@@ -1,8 +1,14 @@
-a = 10 + 2;
+
+function f(x) = 2 * x;
+print(f(10));
+
+a = (10 + 2) * 10;
 print(a ^ 2 * 100);
 
 function factorial(n) = | n > 0 ? n * factorial(n - 1)
 						| otherwise 1;
+
+show(factorial);
 
 print(factorial(10));
 
@@ -10,11 +16,6 @@ b = [1, 2, 3, 4];
 c = [2..6];
 d = [2,4..10];
 print(b + c + d ^ 2);
-
-function sum(list) = | len(list) <= 1 ? list[0]
-					 | otherwise list[0] + sum(tail(list));
-
-print(sum([1, 2, 3, 100]));
 
 function max(list) = | len(list) <= 1 ? list[0]
 					 | list[0] > m ? list[0]
@@ -28,7 +29,7 @@ function reverse(list) = | len(list) <= 1 ? [list[0]]
 
 print(reverse([1, 2, 3, 4]));
 
-function func(x) = {
+function func(x) {
 	xx = 2 * x;
 	return xx + 1;
 }
@@ -55,7 +56,7 @@ import("example_functions");
 print(a(20));
 print(b(10));
 
-function sum_numbers(...numbers) = {
+function sum_numbers(...numbers) {
 	result = 0;
 	for(n in numbers) {
 		result = result + n;
@@ -80,3 +81,18 @@ arr[0] = [1, 2, 3];
 print(arr);
 
 print(lower("HELLO WORLD"));
+
+class A {
+	function constructor(val) {
+		this.val = val;
+	}
+
+	function get_double_value() {
+		return this.val * 2;
+	}
+}
+
+obj1 = new A(10);
+obj2 = new A(20);
+print(obj1.val + obj2.val);
+print(obj1.get_double_value());

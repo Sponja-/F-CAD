@@ -19,7 +19,7 @@ class Subscript(Operation):
 		super().__init__(operation, vector, *indeces)
 
 	def get_value(self, **locals):
-		arr = self.operands[0].value
+		arr = self.operands[0].get_value(**locals)
 		return reduce(lambda x, y: x.operands[int(y.eval(**locals))], self.operands[1:], arr)
 
 	def set_value(self, value, **locals):

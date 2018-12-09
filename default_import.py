@@ -69,6 +69,9 @@ def __tail__(arr, amount):
 
 tail = lambda x, y=1: np.array(list(__tail__(x, int(y))))
 slice = lambda x, y, z, w=1: np.array(list(itertools.islice(x, int(y), int(z), int(w))))
+reverse = lambda x: np.array(list(reversed(x)))
+max = max
+min = min
 
 #
 # STRING

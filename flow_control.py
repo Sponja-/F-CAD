@@ -12,11 +12,23 @@ class Conditional:
 				return result.eval(**locals)
 		if self.default is not None:
 			return self.default.eval(**locals)
-	
+
 	def __str__(self):
 		return '\n' + \
 			   '\n'.join(f"| {str(condition)} ? {str(result)}" for condition, result in zip(self.conditions, self.results)) + \
-			   (f"\n| {str(self.default)}" if self.default is not None else '\n')
+			   (f"\n| otherwise {str(self.default)}" if self.default is not None else '\n')
+
+class IfElseStatement:
+	def __init__(self, condition, true_result, false_result = None):
+		self.condition = condition
+		self.true_result = true_result
+		self.false_result = false_result
+
+	def eval(self, **locals):
+		if self.condition.eval(**locals):
+			self.true_result.eval(**locals)
+		elif false_result is not None:
+			self.false_result.eval(**locals)
 
 class ForLoop:
 	def __init__(self, symbols, range, operation):

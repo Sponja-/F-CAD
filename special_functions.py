@@ -12,7 +12,7 @@ from numpy import ufunc
 class Show(Operation):
 	def __init__(self, operand):
 		if type(operand) is Variable:
-			operation = lambda x: print(str(x.value))
+			operation = lambda x: print(str(x.get_value()))
 		else:
 			operation = lambda x: print(str(x))
 		super().__init__(operation, operand, symbol="show")

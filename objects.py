@@ -4,7 +4,7 @@ class class_value:
 	def __init__(self, name, parent, attributes):
 		self.name = name
 		self.parent = parent
-		self.attributes = parent.attributes
+		self.attributes = parent.attributes if parent is not None else {}
 		self.attributes.update(attributes)
 
 class Class(Constant):
@@ -14,20 +14,23 @@ class Class(Constant):
 		self.value = class_value(name, parent, attributes)
 		Class.table[name] = self.value
 
+class ClassDefinition(Operation):
+	def __init__(self, name, parent, attributes):
+		def operation(x, y, z):
+			Variable.table[x] = Class(x, y, z)
+			return Variable.table[x]
+		super().__init__(operation, non_eval_operands=[name, parent, attributes])
+
 class instance:
 	def __init__(self, class_name):
-		self.class_attributes = Class.table[name]
-		self.instance_attributes = {}
+		self.cls = Class.table[class_name]
+		self.attributes = {}
+	
+class Instance(Constant):
+	def __init__(self, value):
+		self.value = value
 
-class Attribute(Constant):
-	def __init__(self, parent, name):
-		self.parent = parent
-		self.name = name
-
-	@property
-	def value(self):
-		return self.parent.eval().instance_attributes[self.name]
-	 
+type_functions[instance] = Instance
 
 class MethodCall(FunctionCall):
 	def __init__(self, inst, function, *args):
@@ -37,23 +40,28 @@ class MethodCall(FunctionCall):
 	def eval(self, **locals):
 		new_locals = locals.copy()
 		new_locals["this"] = self.inst
-		super().eval(self, **new_locals)
+		return super().eval(**new_locals)
 
 class CreateInstance(Operation):
 	def __init__(self, class_name, *params):
 		def operation(x, *y):
 			inst = instance(x)
-			MethodCall(inst, inst.class_attributes["constructor"], *y).eval()
+			MethodCall(Instance(inst), inst.cls.attributes["constructor"], *y).eval()
 			return inst
-		super().__init__(operation, class_name, *params)
+		super().__init__(operation, non_eval_operands=[class_name, *params])
+
+class AccessMember:
+	def __init__(self, inst, attr_name):
+		self.inst = inst
+		self.attr_name = attr_name
+
+	def get_value(self, **locals):
+		value = self.inst.eval(**locals)
+		return value.attributes.get(self.attr_name, value.cls.attributes.get(self.attr_name, None))
+
+	def set_value(self, value, **locals):
+		self.inst.eval(**locals).attributes[self.attr_name] = value
 
 	def eval(self, **locals):
-		return self.operation(self.operands[0], *(op.eval(**locals) for op in self.operands[1:]))
+		return self.get_value(**locals).eval(**locals)
 
-class AccessMember(Operation):
-	def __init__(self, inst, name):
-		operation = lambda x, y:  x.instance_attributes[y]
-		super().__init__(operation, inst, anem)
-
-	def eval(self, **locals):
-		return self.operation(self.operands[0], self.operands[1])

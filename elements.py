@@ -21,19 +21,11 @@ class Variable:
 		self.symbol = symbol
 
 	def eval(self, **locals):
-		if self.symbol in locals.keys():
-			return locals[self.symbol].eval(**locals)
-		return Variable.table[self.symbol].eval(**locals)
-
-	@property
-	def value(self):
-		return self.get_value()
-
-	@value.setter
-	def value(self, val):
-		self.set_value(val)
+		return self.get_value(**locals).eval(**locals)
 
 	def get_value(self, **locals):
+		if self.symbol in locals.keys():
+			return locals[self.symbol]
 		return Variable.table[self.symbol]
 
 	def set_value(self, value, **locals):
@@ -47,9 +39,10 @@ class Operation:
 		self.symbol = kwargs.get("symbol", self.__class__.__name__)
 		self.operation = operation
 		self.operands = list(operands)
+		self.non_eval_operands = kwargs.get("non_eval_operands", [])
 
 	def eval(self, **locals):
-		return self.operation(*(op.eval(**locals) for op in self.operands))
+		return self.operation(*(op.eval(**locals) for op in self.operands), *self.non_eval_operands)
 
 	def __str__(self):
 		return f"{self.symbol}({', '.join(str(op) for op in self.operands)})"
@@ -67,6 +60,7 @@ class String(Constant):
 
 class func:
 	def __init__(self, var_symbols, var_arg_symbol, operation):
+		assert("this" not in var_symbols)
 		self.symbols = var_symbols
 		self.var_arg_symbol = var_arg_symbol
 		self.operation = operation
@@ -77,6 +71,9 @@ class func:
 class Function(Constant):
 	def __init__(self, var_symbols, operation, var_arg_symbol=None):
 		self.value = func(var_symbols, var_arg_symbol, operation)
+
+	def __str__(self):
+		return str(self.value)
 
 class Vector(Operation):
 	def __init__(self, *elems):
