@@ -27,7 +27,7 @@ class IfElseStatement:
 	def eval(self, **locals):
 		if self.condition.eval(**locals):
 			self.true_result.eval(**locals)
-		elif false_result is not None:
+		elif self.false_result is not None:
 			self.false_result.eval(**locals)
 
 class ForLoop:

@@ -396,6 +396,22 @@ class Parser:
 			return Return(self.assignment_statement())
 		return self.assignment_statement()
 
+	def if_else_statement(self):
+		if self.token.value == 'if':
+			self.eat(KEYWORD)
+			self.eat(GROUP_CHAR, '(')
+			condition = self.expr()
+			self.eat(GROUP_CHAR, ')')
+			true_operation = self.statement_block()
+			false_operation = None
+			if self.token.value == 'else':
+				self.eat(KEYWORD, 'else')
+				false_operation = self.statement_block()
+			return IfElseStatement(condition, true_operation, false_operation)
+		return self.return_statement()
+
+
+
 	def for_statement(self):
 		if self.token.value == 'for':
 			self.eat(KEYWORD)
@@ -406,7 +422,7 @@ class Parser:
 			self.eat(GROUP_CHAR, ')')
 			operation = self.statement_block()
 			return ForLoop(symbols, range, operation)
-		return self.return_statement()
+		return self.if_else_statement()
 
 	def while_statement(self):
 		if self.token.value == 'while':

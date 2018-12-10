@@ -92,7 +92,17 @@ class A {
 	}
 }
 
-obj1 = new A(10);
+obj1 = new A(50);
 obj2 = new A(20);
 print(obj1.val + obj2.val);
 print(obj1.get_double_value());
+
+if(obj1.val == 10) {
+	print("no");
+}
+else if (2 ^ 4 == 15) {
+	print("no");
+}
+else {
+	print("yes");
+}
