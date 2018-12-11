@@ -3,6 +3,7 @@
 #
 
 print = print
+print_repr = lambda x: print(x.__repr__)
 input = input
 
 import json

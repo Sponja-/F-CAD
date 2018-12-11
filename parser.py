@@ -414,8 +414,6 @@ class Parser:
 			return IfElseStatement(condition, true_operation, false_operation)
 		return self.return_statement()
 
-
-
 	def for_statement(self):
 		if self.token.value == 'for':
 			self.eat(KEYWORD)

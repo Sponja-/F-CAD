@@ -65,6 +65,9 @@ class String(Constant):
 	def __init__(self, value):
 		self.value = value
 
+	def __str__(self):
+		return f"\"{str(self.value)}\""
+
 class func:
 	def __init__(self, var_symbols, var_arg_symbol, operation):
 		assert("this" not in var_symbols)
