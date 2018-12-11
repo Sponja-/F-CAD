@@ -8,8 +8,6 @@ print(a ^ 2 * 100);
 function factorial(n) = | n > 0 ? n * factorial(n - 1)
 						| otherwise 1;
 
-show(factorial);
-
 print(factorial(10));
 
 b = [1, 2, 3, 4];
@@ -58,9 +56,8 @@ print(b(10));
 
 function sum_numbers(...numbers) {
 	result = 0;
-	for(n in numbers) {
+	for(n in numbers)
 		result = result + n;
-	}
 	return result;
 }
 
@@ -106,3 +103,41 @@ else if (2 ^ 4 == 15) {
 else {
 	print("yes");
 }
+
+class Node {
+	function constructor(val) {
+		this.val = val;
+		this.next = null;
+	}
+}
+
+class LinkedList {
+	function constructor(...numbers) {
+		this.head = null;
+		this.tail = null;
+		for(n in numbers)
+			this.append(n);
+	}
+
+	function append(n) {
+		if(this.head == null) {
+			this.head = new Node(n);
+			this.tail = this.head;
+		}
+		else {
+			this.tail.next = new Node(n);
+			this.tail = this.tail.next;
+		}
+	}
+
+	function print_list() {
+		node = this.head;
+		while(node != null) {
+			print(node.val);
+			node = node.next;
+		}
+	}
+}
+
+l = new LinkedList(1, 2, 3, 4);
+l.print_list();

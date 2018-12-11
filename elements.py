@@ -14,6 +14,10 @@ class Number(Constant):
 	def __init__(self, value):
 		self.value = value
 
+class Null(Constant):
+	def __init__(self, value):
+		self.value = value
+
 class Variable:
 	table = {}
 
@@ -81,6 +85,8 @@ class Vector(Operation):
 			return array(x)
 		super().__init__(operation, *elems)
 
+NoneType = type(None)
+
 type_functions = {
 	int: Number,
 	float: Number,
@@ -88,7 +94,8 @@ type_functions = {
 	bool: Number,
 	func: lambda x: Function(x.symbols, x.operation, x.var_arg_symbol),
 	str: String,
-	str_: String
+	str_: String,
+	NoneType: Null
 }
 
 def convert_type(value):

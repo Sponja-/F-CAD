@@ -239,6 +239,10 @@ class Parser:
 			args = self.tuple_list(True)
 			return CreateInstance(class_name, *args)
 
+		if token.value == "null":
+			self.eat(KEYWORD)
+			return Null(None)
+
 		if token.type == NUMBER:
 			self.eat(NUMBER)
 			return Number(token.value)

@@ -4,11 +4,11 @@ class class_value:
 	def __init__(self, name, parent, attributes):
 		self.name = name
 		self.parent = parent
-		self.attributes = parent.attributes if parent is not None else {}
-		self.attributes.update(attributes)
+		for name, value in attributes.items():
+			setattr(self, name, value)
 
 class Class(Constant):
-	table = {}	
+	table = {}
 
 	def __init__(self, name, parent, attributes):
 		self.value = class_value(name, parent, attributes)
@@ -24,7 +24,6 @@ class ClassDefinition(Operation):
 class instance:
 	def __init__(self, class_name):
 		self.cls = Class.table[class_name]
-		self.attributes = {}
 	
 class Instance(Constant):
 	def __init__(self, value):
@@ -39,16 +38,21 @@ class MethodCall(FunctionCall):
 
 	def eval(self, **locals):
 		new_locals = locals.copy()
-		new_locals["this"] = self.inst
+		this = self.inst
+		if(type(this) is Variable):
+			this = this.get_value(**locals)
+		new_locals["this"] = this
 		return super().eval(**new_locals)
 
 class CreateInstance(Operation):
 	def __init__(self, class_name, *params):
-		def operation(x, *y):
-			inst = instance(x)
-			MethodCall(Instance(inst), inst.cls.attributes["constructor"], *y).eval()
-			return inst
-		super().__init__(operation, non_eval_operands=[class_name, *params])
+		self.class_name = class_name
+		self.params = params
+
+	def eval(self, **locals):
+		inst = instance(self.class_name)
+		MethodCall(Instance(inst), inst.cls.constructor, *self.params).eval(**locals)
+		return inst
 
 class AccessMember:
 	def __init__(self, inst, attr_name):
@@ -57,10 +61,13 @@ class AccessMember:
 
 	def get_value(self, **locals):
 		value = self.inst.eval(**locals)
-		return value.attributes.get(self.attr_name, value.cls.attributes.get(self.attr_name, None))
+		if hasattr(value, self.attr_name):
+			return getattr(value, self.attr_name)
+		else:
+			return getattr(value.cls, self.attr_name)
 
 	def set_value(self, value, **locals):
-		self.inst.eval(**locals).attributes[self.attr_name] = value
+		setattr(self.inst.eval(**locals), self.attr_name, value)
 
 	def eval(self, **locals):
 		return self.get_value(**locals).eval(**locals)

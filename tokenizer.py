@@ -82,7 +82,8 @@ keywords = [
 	'function',
 	'class',
 	'extends',
-	'new'
+	'new',
+	'null'
 ]
 
 named = [
