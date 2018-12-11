@@ -47,8 +47,8 @@ class Range(Operation):
 class AppendTo(Operation):
 	def __init__(self, vec, appended):
 		def operation(x, y):
-			if type(x) == type(y) == str:
-				return x + y
+			if type(x) == str or type(y) == str:
+				return str(x) + str(y)
 			if not hasattr(y, "shape") or not hasattr(x, "shape"):
 				return append(x, y)
 			if len(x.shape) == len(y.shape):

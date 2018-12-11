@@ -24,12 +24,13 @@ class ClassDefinition(Operation):
 class instance:
 	def __init__(self, class_name):
 		self.cls = Class.table[class_name]
-	
+
 class Instance(Constant):
 	def __init__(self, value):
 		self.value = value
 
 type_functions[instance] = Instance
+type_functions[class_value] = Class
 
 class MethodCall(FunctionCall):
 	def __init__(self, inst, function, *args):
@@ -72,3 +73,5 @@ class AccessMember:
 	def eval(self, **locals):
 		return self.get_value(**locals).eval(**locals)
 
+	def __str__(self):
+		return f"{str(self.inst)}.{self.attr_name}"

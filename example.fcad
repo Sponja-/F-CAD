@@ -130,14 +130,20 @@ class LinkedList {
 		}
 	}
 
-	function print_list() {
-		node = this.head;
-		while(node != null) {
-			print(node.val);
+	function str() {
+		s = "";
+		s = s : this.head.val;
+		node = this.head.next;
+		while(node.next != null) {
+			s = s : ", " : node.val;
 			node = node.next;
 		}
+		s = s : ", " : node.val;
+		return s;
 	}
+
+
 }
 
-l = new LinkedList(1, 2, 3, 4);
-l.print_list();
+l = new LinkedList(...[1..10]);
+print(l.str());

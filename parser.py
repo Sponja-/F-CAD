@@ -511,7 +511,7 @@ if __name__ == '__main__':
 			parse_string(file.read())
 	else:
 		while True:
-			result = Parser(Tokenizer(input('> '))).expr()
+			result = Parser(Tokenizer(input('> '))).statement()
 			if debug:
 				print(str(result))
 			else:
